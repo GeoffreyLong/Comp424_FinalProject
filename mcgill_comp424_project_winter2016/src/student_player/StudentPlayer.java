@@ -22,6 +22,29 @@ public class StudentPlayer extends HusPlayer {
      * which your agent can use to make decisions. See the class hus.RandomHusPlayer
      * for another example agent. */
     public HusMove chooseMove(HusBoardState board_state){
+    	////////// PROJECT RULES //////////
+    	// 30 seconds for initial move, 2 seconds for subsequent moves
+    	// Code must be less than 10mb
+    	// Can only use 500mb of ram
+    	//		Run JVM with “-Xms520m -Xmx520m” to ensure this
+    	// Can multithread, but only one processor 
+    	//		Must end threads on turn completion
+    	// Allowed to read files, not allowed to write them
+    	// Possible to have infinite moves
+    	//		This is where you pick up and sow seeds indefinitely within a turn
+    	//		Can only have up to 200 of these relays
+    	//		If 3 times of more than 200, automatic game loss
+    	//		Apparently can check this by running move on copy of board state
+    	//			HusBoardState has invalid move checkers
+    	// Cannot use external libraries (must make all my own code)
+    	//		TODO check to see if tree libraries are acceptable 
+    	// Make sure I document well
+    	
+    	////////// INITIAL THOUGHTS //////////
+    	// Should have each gameplay type as a separate package
+    	// i.e. if I use minimax, should have a minimax package
+    	
+    	
         // Get the contents of the pits so we can use it to make decisions.
         int[][] pits = board_state.getPits();
 
