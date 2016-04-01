@@ -71,41 +71,46 @@ public class StudentPlayer extends HusPlayer {
     	//		I'm not sure if this is the most efficient way to go about things
     	//		See how efficient it is vs another routine I come up with for furthering the tree
     	
+    	///////////////////////////////////////////////////////////////////////
         // Get the contents of the pits so we can use it to make decisions.
-        int[][] pits = board_state.getPits();
+        // int[][] pits = board_state.getPits();
 
         // Use ``player_id`` and ``opponent_id`` to get my pits and opponent pits.
-        int[] my_pits = pits[player_id];
-        int[] op_pits = pits[opponent_id];
+        //int[] my_pits = pits[player_id];
+        //int[] op_pits = pits[opponent_id];
 
         // Use code stored in ``mytools`` package.
-        MyTools.getSomething();
+        //MyTools.getSomething();
 
         // Get the legal moves for the current board state.
-        ArrayList<HusMove> moves = board_state.getLegalMoves();
-        HusMove move = moves.get(0);
+        //ArrayList<HusMove> moves = board_state.getLegalMoves();
+        //HusMove move = moves.get(0);
         
         // We can see the effects of a move like this...
-        HusBoardState cloned_board_state = (HusBoardState) board_state.clone();
-        cloned_board_state.move(move);
+    	//HusBoardState cloned_board_state = (HusBoardState) board_state.clone();
+        //cloned_board_state.move(move);
 
         // Use executor to handle the timing
         ExecutorService executor = Executors.newSingleThreadExecutor();
-        MiniMax mm = new MiniMax();
-        Future<Integer> future = executor.submit(mm);
+        MiniMax mm = new MiniMax(board_state);
+        Future<HusMove> future = executor.submit(mm);
+        HusMove move = null;
         try {
-			future.get(1990, TimeUnit.MILLISECONDS);
+        	move = future.get(4090, TimeUnit.MILLISECONDS);
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			//System.out.println("interrupt");
 		} catch (ExecutionException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			//System.out.println("interrupt1");
 		} catch (TimeoutException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			//System.out.println("interrupt2");
+			move = mm.getBestMove();
+		} finally {
+			future.cancel(true);
 		}
         
+        //System.out.println("Hello" + move.toPrettyString());
+        executor.shutdownNow();
         
         // But since this is a placeholder algorithm, we won't act on that information.
         return move;

@@ -46,10 +46,15 @@ Student \#260403840 \\
 
 
 %%%%%%%%%%%%%%%%%%%% POSSIBLE HEURISTICS %%%%%%%%%%%%%%%%%%%%
+% NOTES
+%	I think we want to have heuristics on the board and not on moves
+%	We want to check the board state after the move, not the move itself
+% HEURISTICS
 %	Number of stones of opponent
 %	Number of stones of self
 %	Number of possible moves of opponent
 %	Number of possible moves of self
+%	Number of capturable stones
 
 
 
@@ -69,9 +74,9 @@ Student \#260403840 \\
 %					Can be simple as polling for a class (thread) variable
 %					Issue: Might either lose out on good values from final ms of execution
 %						Or will waste time continually updating the best value
-%	Option 1: Spawn a thread, then close to the 2 second mark kill the thread and grab a class variable maxvalue
-%	Option 2: Figure out if ExecutorService is good
-%	
+%	Notices
+%		The absolute best would be to issue notices at key times (like 1 second left, X ms left)
+%		In order to 
 
 
 %%%%% Simple game strategy 1: Greedy %%%%%%
