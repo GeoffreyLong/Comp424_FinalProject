@@ -1,3 +1,8 @@
+% QUESTIONS
+%	What is the start configuration
+%	What kind of computer is this run on (for runtime configurations)
+
+
 \documentclass[]{article}
 %\usepackage{tkz-graph}
 %\usepackage{amsmath}
@@ -32,6 +37,7 @@ Student \#260403840 \\
 %Organization:							5/50
 
 
+
 \begin{document}
 \maketitle
 
@@ -39,3 +45,120 @@ Student \#260403840 \\
 \section{Introduction}
 
 
+%%%%%%%%%%%%%%%%%%%% STRATEGY %%%%%%%%%%%%%%%%%%%%
+%%%%% Simple game strategy 1: Greedy %%%%%%
+% We should select the move that will capture enemy stones if possible
+% If we cannot capture enemy stones, then focus on the move that will keep our stones from being captured 
+%	This involves moving the stones away from the inner, and making sure that groups are staggered
+%	Essentially the inner with the largest number of pebbles that are able to be captured next turn should be broken up
+
+
+%%%%% Simple game strategy 2: Continuations %%%%%%
+% Clearly, we want the opponent to be able to play as little as possible. If we focus on choosing the move that will result in relay sowing, then our turn will continue on. If our turn continues, then we have a higher probability of capturing other stones
+% Of course, this is only valid if the other player has stones in any of the inner slots
+
+
+%%%%%%%%%%%%%%%%%%%% NOTES %%%%%%%%%%%%%%%%%%%%
+%%%%% http://mancala.wikia.com/wiki/Hus %%%%%
+%%% RULES %%%
+% GAME START: At the beginning all the holes in the back row and those in the right half of the front row of each player contain two stones (gomate; literally: "cows"). The other holes are empty. %TODO is this true of our version?
+% WHILE(true)
+%	IF opponent.cantMakeMove THEN WIN
+%	IF self.cantMakeMove THEN LOSE
+%	
+%	Choose hole containing 2 or more stones
+%	WHILE (true)
+%		Sow stones one at a time placing one in each subsequent hole going counter clockwise
+% 		IF the last stone is dropped in an empty hole THEN break (the turn ends)
+% 		ELSE
+%			IF the end hole is occupied, and is in the inner row, and the opponents inner hole immediately opposite is occupied
+%				THEN the stones of the opponent's opposite two holes are captured, continue (repeat while with new stones)
+%			ELSE Pick up the stones from end hole, continue (repeat while with new stones) (called relay sowing)
+%				
+
+% cantMakeMove: all holes are empty or contain singletons
+
+%%% STRATEGY %%%
+% A narrow-width game (such as an 8-hole wide game) gives too much advantage to the starting player who may devastate the opponent's front and back rows.(...) A 12-hole gaming board is minimal for adult play which does not lead to this early imbalance. A 16-hole wide game should be even better.
+% At an early stage of the game, there are often large concentrations of stones grouped in the front holes of both players. These (...) are vulnerable to quick capture, and players usually switch temporarily from attack to defence, for a turn or two, so as to transfer stones into other less vulnerable holes.
+% Stones in back-row holes are temporarily safe from capture when protected by an empty front hole.
+% The dynamics of the game [makes it sometimes] necessary to transfer stones to the front-row for a fresh round of attacks.
+% Experience will show that it is wise to watch the situation at the opponent's right-hand end of the front row (left-hand, seen from your side). (...) [You will either try] to mop up these dangerous attackers as they arrive to the front, or else to flee from them if this is more prudent.
+
+
+%%%%% abayomi2013overview %%%%%
+% Refinement assisted minimax 
+%	1) Basic refinement procedure: Simple myopic view of play
+%		Create a vector of the K feasible moves
+%		IF k==1 THEN select that
+%		ELSE If tail/head is not protected for South/North player respectively 
+%			select it 
+%		ELSE select a move with the highest mobility strength. 
+%	2) Priority: Classify the moves into two classes c1 and c2
+%		c1 was the class of moves that gave the player EGT advantage
+%		c2 was the calss of moves that gave the opponent EGT advantage
+%		Learned with online perceptron
+%		A vector in c1 that was furthest from the separating hyperplane was selected
+%		If all in c2 then run BRP
+%	3) Casing: Combines case-based reasoning with perceptron learning 
+%		Used a product moment formula as a similarity to see which of the source episodes was closest to the target episode.
+%		Case based reasoning involves remembering the previous problem and the solution used to solve the problem
+% Ficticious play: the most studied process for games [21] and a very good example is the End Game Tchoukailon (EGT) positions
+% Also tried "co-evolution"
+%	This seemed to perform rather well
+%	Evolved an evaluation function that was a linear combination of 6 features
+%	FEATURES
+%		The number of the opponent’s pits vulnerable to having 2 stones captured on the next move
+%		The number of the opponents pits vulnerable to having 3 stones captured on the next move
+%		The number of the evolving players pits vulnerable to having 2 stones captured on the next move
+%		The number of the evolving players pits vulnerable to having 3 stones captured on the next move
+%		The current score of the opponent
+%		The current score of the evolving player 
+% Tried Genetic Algorithms with different metrics... this didn't work as well as the co-evolution
+%	FEATURES
+%		a1 The number of pits that the opponent can use to capture 2 seeds. Range: 0-6.
+%		a2 The number of pits that the opponent can use to capture 3 seeds. Range: 0-6.
+%		a3 The number of pits that Ayo can use to capture 2 seeds, range: 0-6.
+%		a4 The number of pits that Ayo can use to capture 3 seeds. Range: 0-6 .
+%		a5 The number of pits on the opponent’s side with enough seeds to reach to Ayo’s side. Range: 0-6.
+%		a6 The number of pits on Ayo’s side with enough seeds to reach the opponent’s side. Range:0-6
+%		a7 The number of pits with more than 12 seeds on the opponent’s side .Range: 0-6.
+%		a8 The number of pits with more than 12 seeds on Ayo’s side. Range: 0-6
+%		a9 The current score of the opponent. Range:0-48
+%		a10 The current score of Ayo. Range: 0-48.
+%		a11 The number of empty pits on the opponents side. Range:0-6.
+%		a12 The number of empty pits on Ayo’s side. Range: 0-6 
+
+
+
+%%%%%%%%%% randle2013overview %%%%%%%%%%
+% Focuses on unsupervised methods for mancala
+% Retrograde analysis
+%	A bottom up approach to scoring like minimax
+%	Found the score for almost a trillion different configurations, but this was deemed too expensive
+% Minimax with Aggregate Mahalanobis Distance Function (ADMF) 
+%	Combines probabilistic distance clustering with the minimax algorithm
+%	Classifies into c1 and c2 for good and bad moves respectively
+%	Used a depth of 6
+%	Performed quite well
+
+
+%%%%%%%%%% gifford2008searching %%%%%%%%%%
+% HEURISTICS
+%	H0: First valid move (furthest valid bin from my home)
+%  	H1: How far ahead of my opponent I am 											(best Heuristic)
+%	H2: How close I am to winning (> half)
+% 	H3: How close opponent is to winning (> half)
+% 	H4: Number of stones close to my home
+% 	H5: Number of stones far away from my home 									(worst Heuristic)
+% 	H6: Number of stones in middle of board (neither close nor far from home) 
+% Minimax + AB pruning
+%	Seemed to work pretty well
+
+
+{\small
+\bibliographystyle{ieee}
+\bibliography{egbib}
+}
+
+\end{document}
