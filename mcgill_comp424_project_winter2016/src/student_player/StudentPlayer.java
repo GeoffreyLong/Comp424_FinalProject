@@ -4,6 +4,8 @@ import hus.HusBoardState;
 import hus.HusPlayer;
 import hus.HusMove;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -96,14 +98,17 @@ public class StudentPlayer extends HusPlayer {
         Future<HusMove> future = executor.submit(mm);
         HusMove move = null;
         try {
-        	move = future.get(4090, TimeUnit.MILLISECONDS);
+        	move = future.get(1900, TimeUnit.MILLISECONDS);
 		} catch (InterruptedException e) {
-			//System.out.println("interrupt");
+			System.out.println("interrupt");
 		} catch (ExecutionException e) {
-			//System.out.println("interrupt1");
+			System.out.println("interrupt1");
+			StringWriter writer = new StringWriter();
+			e.printStackTrace( new PrintWriter(writer,true ));
+			System.out.println("exeption stack is :\n"+writer.toString());
 		} catch (TimeoutException e) {
 			// TODO Auto-generated catch block
-			//System.out.println("interrupt2");
+			System.out.println("interrupt2");
 			move = mm.getBestMove();
 		} finally {
 			future.cancel(true);

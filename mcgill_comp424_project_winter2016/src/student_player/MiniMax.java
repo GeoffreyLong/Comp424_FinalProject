@@ -16,12 +16,11 @@ import hus.HusMove;
 public class MiniMax implements Callable<HusMove> {
 	// Will want this to be iterative deepening
 	private HusMove bestMove = null;
-	private HusBoardState initial_board_state;
 	private HusBoardState cloned_board_state;
-	private Node mmTreeRoot = null;
+	private Node mmTreeRoot = new Node(null, Float.MIN_VALUE, null, true);
 	
 	public MiniMax(HusBoardState board_state){
-		HusBoardState initial_board_state = board_state;
+		cloned_board_state = (HusBoardState) board_state.clone();
 	}
 	
 	// super basic for now
@@ -38,13 +37,12 @@ public class MiniMax implements Callable<HusMove> {
 		// Not a really bad problem though?
 		while (true){
 			depth += 1;
-			System.out.println(depth);
+			//System.out.println(depth);
 			// Recloning will also be slow
 			// Would be best if we could just continue on from where we left off
 			// This "in-between" is a simple backpropagation of values
-			cloned_board_state = (HusBoardState) initial_board_state.clone();
 			minimax(cloned_board_state, mmTreeRoot, depth, true);
-			
+
 			float bestValue = Float.MIN_VALUE;
 			for (Node node : mmTreeRoot.children){
 				// In the event of a tie might want to look at the grandchildren of root
@@ -73,7 +71,7 @@ public class MiniMax implements Callable<HusMove> {
 			// Estimate the value of the node 
 			// This value will be based on the heuristics
 			//		that are based on the board state
-			estimateNodeValue(state);
+			return estimateNodeValue(state);
 		}
 		
 		// Maximizing player
@@ -86,6 +84,8 @@ public class MiniMax implements Callable<HusMove> {
 				Node node = new Node(parent,move,isMax);
 				
 				HusBoardState tempState = (HusBoardState) state.clone();
+				
+				// TODO Add if statement to check for infinite moves
 				tempState.move(move);
 
 				float value = minimax(tempState, node, depth-1, false);
@@ -95,6 +95,7 @@ public class MiniMax implements Callable<HusMove> {
 				}
 				node.value = value;
 				nodeList.add(node);
+				
 			}
 			
 			parent.children = nodeList;
