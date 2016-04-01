@@ -45,7 +45,35 @@ Student \#260403840 \\
 \section{Introduction}
 
 
+%%%%%%%%%%%%%%%%%%%% POSSIBLE HEURISTICS %%%%%%%%%%%%%%%%%%%%
+%	Number of stones of opponent
+%	Number of stones of self
+%	Number of possible moves of opponent
+%	Number of possible moves of self
+
+
+
 %%%%%%%%%%%%%%%%%%%% STRATEGY %%%%%%%%%%%%%%%%%%%%
+% TIMING (I can only really see this being done efficiently with some sort of threading)
+%	Desired behaviour
+%		Priority 1: Stop before 2 seconds is up
+%		Priority 2: Stop as close to 2 seconds as possible
+%		Priority 3: Return the best value possible from the method
+%		Priority 4: Don't waste CPU cycles polling the timer (this is why threads would be best)
+%		Best option is to asynchronously issue a shutdown command to a running thread
+%			This will either 
+%				Try to calculate the best value available (shutting it down gracefully) (preferred)
+%					In terms of minimax, perhaps this callback will quickly backpropogate the values it has found on the incomplete level
+%					Issue: Will need extra time buffer to allow this to happen
+%				Return the best current value
+%					Can be simple as polling for a class (thread) variable
+%					Issue: Might either lose out on good values from final ms of execution
+%						Or will waste time continually updating the best value
+%	Option 1: Spawn a thread, then close to the 2 second mark kill the thread and grab a class variable maxvalue
+%	Option 2: Figure out if ExecutorService is good
+%	
+
+
 %%%%% Simple game strategy 1: Greedy %%%%%%
 % We should select the move that will capture enemy stones if possible
 % If we cannot capture enemy stones, then focus on the move that will keep our stones from being captured 
@@ -58,7 +86,10 @@ Student \#260403840 \\
 % Of course, this is only valid if the other player has stones in any of the inner slots
 
 
-%%%%%%%%%%%%%%%%%%%% NOTES %%%%%%%%%%%%%%%%%%%%
+
+
+
+%%%%%%%%%%%%%%%%%%%% EXTERNAL NOTES %%%%%%%%%%%%%%%%%%%%
 %%%%% http://mancala.wikia.com/wiki/Hus %%%%%
 %%% RULES %%%
 % GAME START: At the beginning all the holes in the back row and those in the right half of the front row of each player contain two stones (gomate; literally: "cows"). The other holes are empty. %TODO is this true of our version?
