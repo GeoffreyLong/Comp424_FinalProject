@@ -114,7 +114,8 @@ public class StudentPlayer extends HusPlayer {
         
         // Use executor to handle the timing
         ExecutorService executor = Executors.newSingleThreadExecutor();
-        MiniMax mm = new MiniMax(board_state,mmTreeRoot);
+        // MiniMax mm = new MiniMax(board_state,mmTreeRoot);
+        MiniMax mm = new MiniMax(board_state);
         Future<HusMove> future = executor.submit(mm);
         HusMove move = null;
         
@@ -130,11 +131,16 @@ public class StudentPlayer extends HusPlayer {
 			System.out.println("exeption stack is :\n"+writer.toString());
 		} catch (TimeoutException e) {
 			// TODO Auto-generated catch block
-			System.out.println("interrupt2");
-			move = mm.getBestMove();
-		} finally {
+			//System.out.println("Timeout");
 			future.cancel(true);
+		} finally {
+			
 		}
+        
+        // Just in case
+        future.cancel(true);
+        while(!future.isDone());
+        move = mm.getBestMove();
         
         //System.out.println("Hello" + move.toPrettyString());
         executor.shutdownNow();

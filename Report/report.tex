@@ -114,6 +114,7 @@ Due to the branching factor, the final level reached would take the longest to c
 % Could have a metric of percentage of children filled for grandparents. 
 In either case, there is still the risk of execution time variation in the variable back-propagation. This variation is expected to be rather minimal though, especially if we include unbalanced trees.
 
+%TODO mention that the executor was initially conducted under the assumption that the cancellation would return immediately. This would cancel execution on the thread, this assumption proved false though.
 %TODO ACTUALLY, the leaf values will need to be calculated, this will be the expensive part, so... might need iterative deepening in either case to avoid. But I guess even in iterative deepening you calculate all the leaf values, so I guess ID would be more expensive
 
 \subsection{MiniMax}

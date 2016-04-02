@@ -18,15 +18,38 @@ public class MiniMax implements Callable<HusMove> {
 	private HusMove bestMove = null;
 	private HusBoardState cloned_board_state;
 	private Node mmTreeRoot;
+	private int playerNum;
+	private int oppPlayerNum;
+	private boolean isInterrupted = false;
 	
 	public MiniMax(HusBoardState board_state, Node mmTreeRoot){
 		cloned_board_state = (HusBoardState) board_state.clone();
 		this.mmTreeRoot = mmTreeRoot;
+		this.playerNum = board_state.getTurnPlayer();
+		this.oppPlayerNum = (this.playerNum + 1) % 2;
+	}
+	
+	public MiniMax(HusBoardState board_state){
+		cloned_board_state = (HusBoardState) board_state.clone();
+		this.mmTreeRoot = new Node(null, null, true);
+		this.playerNum = board_state.getTurnPlayer();
+		this.oppPlayerNum = (this.playerNum + 1) % 2;
 	}
 	
 	// super basic for now
 	private float estimateNodeValue(HusBoardState state){
-		return state.getLegalMoves().size();
+		// state.getLegalMoves().size();
+		int[][] pits = state.getPits();
+		
+		int[] player_pits = pits[playerNum];
+        int[] opp_pits = pits[oppPlayerNum];
+        
+        int value = 0;
+        for (int i = 0; i < player_pits.length; i++){
+        	value += player_pits[i] - opp_pits[i];
+        }
+        
+        return value;
 	}
 
 	@Override
@@ -52,7 +75,10 @@ public class MiniMax implements Callable<HusMove> {
 					bestMove = node.move;
 				}
 			}
+			
+			if (isInterrupted) break;
 		}
+		return bestMove;
 	}
 	
 	// Adapted from pseudocode found on https://en.wikipedia.org/wiki/Minimax
@@ -65,8 +91,9 @@ public class MiniMax implements Callable<HusMove> {
 	//		If I do, do I need to delete the clone to save memory?
 	private float minimax(HusBoardState state, Node parent, int depth, boolean isMax){
 		ArrayList<HusMove> moves = state.getLegalMoves();
-		List<Node> nodeList = new ArrayList<Node>();
-		if (depth == 0 || moves.size() == 0){
+		
+		if (Thread.interrupted()) isInterrupted = true;
+		if (depth == 0 || moves.size() == 0 || isInterrupted){
 			// If we are at a leaf or the max depth 
 			// (which is basically like a leaf for our purposes)
 			// Estimate the value of the node 
@@ -74,6 +101,8 @@ public class MiniMax implements Callable<HusMove> {
 			//		that are based on the board state
 			return estimateNodeValue(state);
 		}
+		
+		List<Node> nodeList = new ArrayList<Node>();
 		
 		// Maximizing player
 		if (isMax){
