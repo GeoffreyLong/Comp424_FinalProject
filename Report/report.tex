@@ -23,10 +23,19 @@ Student \#260403840 \\
 %%%%%%%%%%%%%%%%%%%% REQUIREMENTS %%%%%%%%%%%%%%%%%%%%
 %The suggested length is between 4 and 5 pages (at ∼300 words per page), but the most important constraint is that the report be clear and concise. The report must include the following required components:
 %1. An explanation of how your program works, and a motivation for your approach.
+%	ALGORITHM
+
 %2. A brief description of the theoretical basis of the approach (about a half-page in most cases); references to the text of other documents, such as the textbook, are appropriate but not absolutely necessary. I you use algorithms from other sources, briefly describe the algorithm and be sure to cite your source.
+%	BACKGROUND
+
 %3. A summary of the advantages and disadvantages of your approach, expected failure modes, or weaknesses of your program.
+%	RESULTS
+
 %4. If you tried other approaches during the course of the project, summarize them briefly and discuss how they compared to your final approach.
+%	probably ALGORITHM
+
 %5. A brief description (max. half page) of how you would go about improving your player (e.g. by introducing other AI techniques, changing internal representation etc.).
+% 	CONCLUSIONS
 
 %%%%%%%%%%%%%%%%%%%% RUBRIC %%%%%%%%%%%%%%%%%%%%
 %Technical Approach:					20/50
@@ -36,25 +45,99 @@ Student \#260403840 \\
 %Language and Writing:					5/50
 %Organization:							5/50
 
-
+%TODO Abstract
 
 \begin{document}
 \maketitle
 
 \newpage
 \section{Introduction}
+Hus is a game that lends itself well to AI development. It is from a family of rather well studied Mancala games, although Hus itself is rather unstudied. There are several variations of Mancala, but they all share the basic principles. Specifically that the board has holes which are ordered into rows; the game is played with indistinguishable tokens (henceforth referred to as seeds); each player owns a fixed and equal number of holes on the board; a move involves taking the seeds out of a selected hole and placing them one-by-one in subsequent holes (this is often referred to as sowing); the sowing may or may not terminate with capture conditions which allow a given player to seize another's seeds; and the goal of the game is to capture the most (or all) of the seeds \cite{donkers2002programming}. In Hus, there are 4 rows of 8 holes a piece, and each player owns the 2 rows closest to them. Each player begins their turn by choosing a hole with more than one seed. If they cannot do this, they have lost the game. All of the seeds are taken from the hole and sowed one-by-one in a counter clockwise manner starting with the hole directly after the initially chosen hole. If the sowing ends on a previously occupied hole, then the seeds are taken. If the previously occupied hole is in an inner row, then the opponent's seeds on the same column can also be seized. If there are seeds to be sown, then the player continues as before.
+
+As can be seen, %TODO try to say that it lends itself well to AI development without saying exactly that
+Since the problem has a discrete state space, the search will be over a finite set of different game states. The changes between states in this state space is deterministic. This means that for each player action, we know exactly what the outcome will be. We might not know the full effect of the move due to the execution time constraints, but we know the immediate effects and how this alters the game flow over a finite span. This lowers the complexity and ensures that we will know the exact state of the board given a set of moves. This allows us to plan more effectively and with more certainty. The static and observable nature of the environment affords us similar benefits. Since the information on the game is perfect, planning can be performed with greater certainty. 
+
+The game rules themselves also help to make planning easier. There is a finite set of moves that can be applied at each turn, each with the same basic operator. Each player has the same simple moves and has the same simple goal, so it is easy to see the relationship between the players. The immediate cost of a player's action can be easily observed by counting the number of stones gained or lost. The simple rules, few operators, and observable cost all make it easier to derive a well rounded set of heuristics for estimating the quality of a move. The heuristics (discussed in Section \ref{sec:heuristics}) are really what drives the AI agent to the goal quickly. 
+% Therefore, the quality of a move can be determined rather easily within a finite frame of subsequent moves. 
+
+% donkers2002mancala: The fact that a single move can effect all pits can make it difficult to see even a few moves ahead
+
+% 	OTHER AI TERMS
+%		State: The number of seeds in each pit as well as player turn
+%		Operators: Choosing a pit with more than one seed (in own player area)
+%		Goal: To obtain more stones than opponent (specifically to capture so many that opponent cannot move)
+%		Cost: +1 for winning, 0 for ties, -1 for losing
+
+As can be seen, Hus is a good candidate for AI development. The remainder of this paper discusses an approach taken towards a suitable AI agent. 
+
+
+\section{Background}
+A theoretical basis for the approach was derived by parsing articles on AI approaches in the Mancala family of games. Although no papers were found on Hus specifically, Mancala and several of its derivatives did have AI research. Since the Mancala games all have similar mechanics (described in Section \ref{sec:intro}), many of the approaches are extensible to Hus. Specifically, an algorithm that works well for Mancala can be expected to work for Hus as well. This extensibility is mostly due to the simple and shared game operators. In any Mancala variant, a player will take seeds and distribute them evenly amongst the subsequent holes. The effect of a given action is rather similar across the entire family of games. Also the branching factor, representation, goals, and states are also quite similar among the family. Since the state, operators, goal, and cost are similar along with the environment, we can expect similar algorithms to perform similarly. That being said, variants that have mechanics that more similar to Hus's offer better indications.
+
+Amongst all the strategies employed, MiniMax variants were the most common. Specifically MiniMax with alpha-beta pruning which relies on an evaluation function consisting of a linear combination of weighted features. Minimax variants were used in nearly all of the papers read on Mancala games. 
+
+Abayomi et al. studied a series of supervised machine learning methods in "An Overview of Supervised Machine Learning Techniques in Evolving Mancala Game Player". They focused on developing AI for the variant Awale. The majority of the methods were employed using minimax combined with some sort of machine learning. The machine learning was used to classify moves into two classes, one which helped the player and another that helped the opponent. The move was chosen which was the farthest away from the separating hyperplane. The classification was learned several ways including case-based reasoning using a perceptron; features using linear discriminant analysis; and linear discriminant functions learned with a perceptron. They also employed evolutionary computation to learn the evaluation function using both co-evolution and genetic algorithms to mixed success \cite{abayomi2013overview}. In a similar paper Randle et al. studied unsupervised methods in "An Overview of Unsupervised Machine Learning Techniques to Evolve Mancala Game Player". They initially attempted retrograde analysis, which takes a bottom up approach to scoring, but this was deemed too expensive. Then, similar to Source \cite{abayomi2013overview}, they used learning to create a binary classifier separating good and bad strategies. Again, the move was chosen to maximize the distance to the hyperplane. The machine learning used was the Aggregate Mahalanobis Distance Function (ADMF), and it was used with minimax with a depth of 6. This method appeared to outperform the supervised methods seen earlier \cite{randle2013overview}. In "Searching \& Game Playing: An Artificial Intelligence Approach to Mancala", Gifford et al. were able to achieve a 100\% success rate by varying weights on a set of parameters used for an alpha beta minimax evaluation function. They found that small changes in certain weighted heuristics can make a big impact on the outcome of the search \cite{gifford2008searching}. Other authors chose to use iterative deepening with memory enhanced test driver (MTD(f)), which is a variant of alpha-beta minimax which searches using only zero-window windows. MTD(f) is often considered one of the more speed optimized versions of minimax. It was used for BAO by Donkers et al. in "Programming Bao" \cite{donkers2002programming}. It was also used by Irving et al. to solve Kalah(6,5) in the paper "Solving Kalah" \cite{irving2000solving}. As is shown, minimax and its variants work well for Mancala style games. 
+% kalah(6,5), which has a game tree complexity of $3*10^{22}$,
+
+
+In addition to the overall strategy, the papers also showed possible evaluation functions and heuristics. Although a majority of the features are not directly applicable to Hus, many could be adapted to optimize a Hus evaluation function. %TODO specifics %TODO cite the sources that use a weighted evaluation function
+
+
+
+\section{Algorithm}
+As was stated in Section \ref{sec:background}, one of the more common approaches was MiniMax with Alpha-Beta pruning. This algorithm was a logical choice for my AI agent because it is proven for this problem, well studied, and rather easy to implement. The most difficult part of the problem would be in crafting the evaluation function.
+
+\subsection{MiniMax}
+% Description of the MiniMax as well as any optimizations I chose
+
+
+\subsection{Evaluation Function}
+
+
+\section{Testing}
+
+\section{Results}
+
+\section{Conclusions}
+
+
+%TODO READ
+% http://cgi.cs.mcgill.ca/~sspenc8/cgi-bin/zedtech.cgi/static/documents/stuart-spence-omweso-report.pdf
+% http://www.icoci.cms.net.my/proceedings/2013/PDF/PID127.pdf
+% AB shizz
+
+%%%%%%%%%%%%%%%%%%%%TODO%%%%%%%%%%%%%%%%%%%%
+% STORING MOVES
+%	Find out how many different positions I could store using compact storage
+%		I think the most compact would be 33 integer slots (32 for the board, then 1 for an evaluation)
+%			Or 32 integers and one float
+%		Then there is the query cost too
+%	I could possibly do a sort of Markov walk to the endgame result to seed this
+%		Randomly walk down a branch, then back-propagate the information up once the end has hit
+%		In a file store the 32 integers and evaluation
+%	Could potentially only store a subset of these that perform best and worst?
+%	Will need to evaluate the cost of querying this as well... That will be more difficult
+
 
 
 %%%%%%%%%%%%%%%%%%%% POSSIBLE HEURISTICS %%%%%%%%%%%%%%%%%%%%
 % NOTES
 %	I think we want to have heuristics on the board and not on moves
 %	We want to check the board state after the move, not the move itself
+% 	Remember that for evaluation fns we want the evaluation to be the same under monotonic transformation
+%		Want to retain the order of the numbers
 % HEURISTICS
 %	Number of stones of opponent
 %	Number of stones of self
 %	Number of possible moves of opponent
 %	Number of possible moves of self
 %	Number of capturable stones
+
+% MOVE HEURISTICS
+%	Ones that capture the largest number of stones
+%	Those that repeat for the longest (without going forever)
+%	Those that shorten the game (bring towards end faster)
+%		This might be hard to calculate
 
 
 
@@ -78,6 +161,17 @@ Student \#260403840 \\
 %		The absolute best would be to issue notices at key times (like 1 second left, X ms left)
 %		In order to 
 
+
+
+% BEGINNING GAME LOGIC
+%	Find which moves produce the best initial outcome, and what is the best counter against that
+%		Should be as easy as looping through the initial moves (the possible moves from initial board state)
+%		and seeing which move corresponds to the greatest number of stones for me
+%	Since I have 30 seconds, I should take all of this to craft my minimax tree
+%		Subsequent rounds should simply prune all the branches that were not followed
+%		These rounds should continue off the lowest portions of the existent tree 
+%			The nodes that still exist in the minimax tree, but who's children have not been explored
+%		Could also potentially save some of the tree within a file to be read off... though this might not be a good use of data space
 
 %%%%% Simple game strategy 1: Greedy %%%%%%
 % We should select the move that will capture enemy stones if possible
@@ -110,10 +204,8 @@ Student \#260403840 \\
 %			IF the end hole is occupied, and is in the inner row, and the opponents inner hole immediately opposite is occupied
 %				THEN the stones of the opponent's opposite two holes are captured, continue (repeat while with new stones)
 %			ELSE Pick up the stones from end hole, continue (repeat while with new stones) (called relay sowing)
-%				
-
 % cantMakeMove: all holes are empty or contain singletons
-
+%
 %%% STRATEGY %%%
 % A narrow-width game (such as an 8-hole wide game) gives too much advantage to the starting player who may devastate the opponent's front and back rows.(...) A 12-hole gaming board is minimal for adult play which does not lead to this early imbalance. A 16-hole wide game should be even better.
 % At an early stage of the game, there are often large concentrations of stones grouped in the front holes of both players. These (...) are vulnerable to quick capture, and players usually switch temporarily from attack to defence, for a turn or two, so as to transfer stones into other less vulnerable holes.
@@ -167,16 +259,7 @@ Student \#260403840 \\
 
 
 
-%%%%%%%%%% randle2013overview %%%%%%%%%%
-% Focuses on unsupervised methods for mancala
-% Retrograde analysis
-%	A bottom up approach to scoring like minimax
-%	Found the score for almost a trillion different configurations, but this was deemed too expensive
-% Minimax with Aggregate Mahalanobis Distance Function (ADMF) 
-%	Combines probabilistic distance clustering with the minimax algorithm
-%	Classifies into c1 and c2 for good and bad moves respectively
-%	Used a depth of 6
-%	Performed quite well
+
 
 
 %%%%%%%%%% gifford2008searching %%%%%%%%%%
@@ -190,6 +273,56 @@ Student \#260403840 \\
 % 	H6: Number of stones in middle of board (neither close nor far from home) 
 % Minimax + AB pruning
 %	Seemed to work pretty well
+
+
+%%%%%%%%%% donkers2002mancala %%%%%%%%%%
+% The number of possible positions depends on the number of pits n, the number of stones m, and the number of players k. 
+%		p = k * \choose( n+k+m-1,m)
+% The period (how many subsequent moves before recurring) of perpetual sowing can often be shown mathematically given ratios of pits
+%		This is probably rather unimportant
+% Kalah and Awari most studied variants
+% Kalah has been solved
+%		Larger instances of Kalah were solved by game tree search
+%		Smaller instances are stored and known explicitly
+% Awari (Wari or Awale) is like an adult version of Kalah
+%		Game tree search from starting position, and large end-game database
+
+
+%%%%%%%%%% donkers2002programming %%%%%%%%%%
+% All about BAO, which actually isn't really similar to Hus
+% Largely useless
+% Uses iterative deepening MTD(f)
+%		THIS ACTUALLY LOOKS REALLY GOOD
+%		"The most efficient MiniMax algorithm"
+%		Works by calling Alpha-beta several times (well an alpha beta version with memory)
+% "Possibly useful features"
+%		total number of counters per side;
+%		number of holes in the front row that are filled;
+%		total number of counters in the back row;
+%		number of holes in the front row that are under attack;
+%		number of opponent holes that can be attacked;
+%		whether the house is active or not;
+%		contents of the (active) house;
+%		whether the house is under attack or not;
+%		whether the opponent’s house is under attack or not.
+
+
+
+%%%%%%%%%% irving2000solving %%%%%%%%%%
+% DIDN'T READ FULLY This is the paper about solving Kalah
+% They use iterative deepening MTD(f) (memory enhanced test driver) with an ID step size of 3
+%	Optimized alpha beta using only zero window windows in the search
+% They have several optimizations which *might* be worth looking into
+%	Move ordering, transposition tables (I thought standard in MTD), futility pruning, enhanced transposition cutoff
+% The endgame databases formed using retrograde analysis
+%	107 MB were used for a 20-counter endgame database, and 96 MB were used for an 8 mega-entry transposition table.
+% The move-ordering sort was based on four factors (in order of precedence): transposition-table suggestions, extra turns, captures, and right-to-left default ordering.
+% FUTILITY PRUNING
+%	The Kalah program also uses a version of futility pruning (Schaeffer, 1986). At each node, the possible range of scores at the end of the game is calculated by adding all stones in play to both player’s kalahahs. This range is then improved slightly with knowledge of captures, etc. If the range does not intersect the alphabeta window, an immediate, full-depth cut-off is possible
+% ENHANCED TRANSPOSITION TABLE CUTOFF
+% 	Enhanced transposition cut-off is a method of improving transposition-table use by first searching all successor nodes for transposition-table data (Plaat et al., 1996b). Applying the same idea to futility pruning and endgame look-ups, and then using the resulting information to improve move ordering reduced tree size by a factor of up to 8, and cut total running time by about 3 when solving Kalah(6, 4).
+% History heuristic was not beneficial
+
 
 
 {\small

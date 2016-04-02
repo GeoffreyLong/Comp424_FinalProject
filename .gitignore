@@ -1,3 +1,6 @@
 mcgill_comp424_project_winter2016/eclipse/
 mcgill_comp424_project_winter2016/logs/
 *.swp
+Report/report.aux
+Report/report.log
+Report/report.synctex.gz
