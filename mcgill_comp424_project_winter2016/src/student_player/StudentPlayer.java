@@ -18,7 +18,8 @@ import student_player.mytools.MyTools;
 
 /** A Hus player submitted by a student. */
 public class StudentPlayer extends HusPlayer {
-
+	private Node mmTreeRoot = new Node(null, Float.MIN_VALUE, null, true);
+	
     /** You must modify this constructor to return your student number.
      * This is important, because this is what the code that runs the
      * competition uses to associate you with your agent.
@@ -85,20 +86,41 @@ public class StudentPlayer extends HusPlayer {
         //MyTools.getSomething();
 
         // Get the legal moves for the current board state.
-        //ArrayList<HusMove> moves = board_state.getLegalMoves();
+    	//ArrayList<HusMove> moves = board_state.getLegalMoves();
         //HusMove move = moves.get(0);
         
         // We can see the effects of a move like this...
     	//HusBoardState cloned_board_state = (HusBoardState) board_state.clone();
         //cloned_board_state.move(move);
-
+    	
+  
+    	// TO TEST HOW MANY NODES FIT IN MEMORY
+    	/*
+    	float value = 0;
+        while(true){
+        	value += 1;
+        	HusMove mover = board_state.getLegalMoves().get(0);
+        	Node node = new Node(mmTreeRoot,(float) value,mover, true, (HusBoardState) board_state.clone());
+        	ArrayList<Node> nodeList = new ArrayList<Node>();
+        	mmTreeRoot.children = nodeList;
+        	mmTreeRoot = node;
+        	if (mover == null){break;}
+        	if (value % 10000 == 0){
+        		System.out.println(String.valueOf(value) + '\t' + Runtime.getRuntime().freeMemory());
+        	}
+        	
+        }*/
+    	
+        
         // Use executor to handle the timing
         ExecutorService executor = Executors.newSingleThreadExecutor();
-        MiniMax mm = new MiniMax(board_state);
+        MiniMax mm = new MiniMax(board_state,mmTreeRoot);
         Future<HusMove> future = executor.submit(mm);
         HusMove move = null;
+        
+        
         try {
-        	move = future.get(1900, TimeUnit.MILLISECONDS);
+        	move = future.get(1800, TimeUnit.MILLISECONDS);
 		} catch (InterruptedException e) {
 			System.out.println("interrupt");
 		} catch (ExecutionException e) {

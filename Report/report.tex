@@ -81,17 +81,75 @@ Abayomi et al. studied a series of supervised machine learning methods in "An Ov
 
 
 In addition to the overall strategy, the papers also showed possible evaluation functions and heuristics. Although a majority of the features are not directly applicable to Hus, many could be adapted to optimize a Hus evaluation function. %TODO specifics %TODO cite the sources that use a weighted evaluation function
+A list of relevant and possibly adaptable features is shown below. Note that some of the features have been altered slightly to align more closely with Hus's objectives:
 
+\begin{itemize}
+\item The number of pits that we / opponent can use to capture seeds \cite{abayomi2013overview}
+\item The number of pits with more than X seeds on the our / opponent’s side \cite{abayomi2013overview} 
+\item The current score of our player / opponent \cite{abayomi2013overview}
+\item The number of empty pits on our / opponents side \cite{abayomi2013overview}
+
+\item number of holes in the inner row that are filled \cite{donkers2002programming}
+\item total number of counters in the back row \cite{donkers2002programming}
+
+\item How far ahead of my opponent I am ("good heuristic") \cite{gifford2008searching}
+\item How close I am / opponent is to winning (> half) \cite{gifford2008searching}
+\end{itemize}
+
+As with any heuristic, these features provide insight to the game status. Many of the features only weakly classify the moves as beneficial/detrimental however, when combined into a linear combination, they can form a rather strong classification of move quality. Note that the list above is is just a subset of the heuristics found. Many of the other heuristics can be used to draft heuristics for Hus. A further description of heuristics can be found in \ref{sec:heuristics}.
 
 
 \section{Algorithm}
-As was stated in Section \ref{sec:background}, one of the more common approaches was MiniMax with Alpha-Beta pruning. This algorithm was a logical choice for my AI agent because it is proven for this problem, well studied, and rather easy to implement. The most difficult part of the problem would be in crafting the evaluation function.
+As was stated in Section \ref{sec:background}, one of the more common approaches was MiniMax with Alpha-Beta pruning. This algorithm was a logical choice for my AI agent because it is proven for this problem, it can be tailored using an evaluation function, and it is rather easy to implement. The most difficult part of the problem would be in crafting the evaluation function.
+
+\subsection{Ensuring Timing}
+A big component of this project is adherence to the strict timing guidelines. As was stated in the project specification document, the agents have 30 seconds for the first move, and 2 seconds for each subsequent move. Although one could theoretically perform timing analysis on their program to ascertain an average depth of their game tree or number of iterations on their algorithm, this method is ineffective. The issue is that different environments and even different games could cause drastic changes in the timing. If, for instance, the branching factor is much larger for a given instance, the agent could run out of time before the tree is fully searched. On the other hand, if the branching factor is small, then the agent could end up returning a value prematurely, when they could have searched farther down the game tree. An effective timer would perform the following (in order of priority): stop before the time constraint; stop as close to the time constraint as possible; return the best possible value; and don't waste CPU cycles polling the timer.
+
+%TODO could put the next sections in a subsection, or after the minimax explanation... It references the minimax pretty heavily, so...
+Although there are several different ways of achieving effective timing constraints, most of the ones theorized involved spawning threads. The pattern would be for the main thread to spawn a worker thread to perform all the execution. When the time is approaching the end, the main thread sends a signal to cancel the worker thread, and a value is returned. Of all the patterns found, Java's executor service was found to be the best. This is due to its thread safety, its ability to shut down immediately when the command is given, and its efficiency in not wasting CPU cycles. The most time-safe method would be for the system to poll a value from the thread's class variable after the thread has stopped executing. This class variable would store the current best move as found by the minimax algorithm. The thread would have to keep updating this class variable to ensure that this value is actually corresponds to the best move. The most natural approach here would be to use iterative deepening. At the end of each iteration the value would be updated. 
+
+An alternative method that was not employed would be to cancel the thread early, saving the game tree. Then, the system would use the remaining time to back-propagate the minimax values of the tree in order to find the most optimal move. If the algorithm proceeds to the deepest full level, this method will save execution time since the algorithm would not have to employ iterative deepening, so the back-propagation would only have to occur once. 
+
+Due to the branching factor, the final level reached would take the longest to compute. If we use either method described before, much of this deepest level, and therefore much of the computation time, would be wasted. This is why an alternative approach was considered where even the leaves of the unbalanced tree could be back-propagated. The risk of using an unbalanced tree would be the skewing of parent values. If a parent only has one child, then the parent will take this value. However if the parent is full, or close to full, then the probability of the back-propagated value being correct, or close to correct, increases. It also increases for a given node if the branching factor is high enough, and the node is one or two generations up the tree before encountering an imbalance. Since all levels except the last are expected to be filled, we only require that the leaves have a full set of siblings in order for their values to back-propagate. Although, the imbalance may skew the results slightly, it is not expected to have a major impact, especially since the values of nodes are estimates themselves. % IS THIS TRUE?? If the branching factor is high enough, then even a slight imbalace one or two generations up the tree would not be expected to skew the results too much. %IS THIS TRUE?? I think so, since the upper levels are most certainly filled... %Since this is the case, we require the parents of leaves to have a full set of children and at least a half full set of siblings in order to back-propagate. % Could probably get away with just the leaves being full siblings %%% Using an unbalanced tree might be questionable though, since the parent nodes would also be unbalanced, possibly skewing results. Hopefully, the branching factor is such that the skewing is not too detrimental. 
+% Could have a metric of percentage of children filled for grandparents. 
+In either case, there is still the risk of execution time variation in the variable back-propagation. This variation is expected to be rather minimal though, especially if we include unbalanced trees.
+
+%TODO ACTUALLY, the leaf values will need to be calculated, this will be the expensive part, so... might need iterative deepening in either case to avoid. But I guess even in iterative deepening you calculate all the leaf values, so I guess ID would be more expensive
 
 \subsection{MiniMax}
 % Description of the MiniMax as well as any optimizations I chose
+% Not really done... so...
+As was stated in Section \ref{sec:strategy}, a vast majority of the algorithms chose minimax or an optimized version of it. The adversarial nature of the algorithm lends itself well to minimax. Given the wealth of research behind this algorithm, minimax was the obvious choice for the base of the AI player. In order to implement minimax, a Node class was created to store the value of the node, the move the node corresponds to, and the parent and children of the node. % POSSIBLY game state if the game doesn't take too much space... This would save a lot of recomputation time...
+The minimax itself works like any other minimax algorithm. The game tree is walked in a breadth first manner, the values of the leaves are estimated using an evaluation function (discussed in Section \ref{sec:evalFn}), and the minimum or maximum values are back propagated according to whether the parent node is a max or a min node. In order to increase the depth of the search, several optimizations were made.
+
+\subsubsection{Optimizations}
+\paragraph{Alpha-Beta pruning}:
+
 
 
 \subsection{Evaluation Function}
+\label{sec:evalFn}
+% Talk about the heuristics used
+
+%%%%%%%%%%%%%%%%%%%% POSSIBLE HEURISTICS %%%%%%%%%%%%%%%%%%%%
+% NOTES
+%	I think we want to have heuristics on the board and not on moves
+%	We want to check the board state after the move, not the move itself
+% 	Remember that for evaluation fns we want the evaluation to be the same under monotonic transformation
+%		Want to retain the order of the numbers
+% HEURISTICS
+%	Number of stones of opponent
+%	Number of stones of self
+%	Number of possible moves of opponent
+%	Number of possible moves of self
+%	Number of capturable stones
+
+% MOVE HEURISTICS: probs don't want, but good to think about
+%	Ones that capture the largest number of stones
+%	Those that repeat for the longest (without going forever)
+%	Those that shorten the game (bring towards end faster)
+%		This might be hard to calculate
+
 
 
 \section{Testing}
@@ -117,49 +175,14 @@ As was stated in Section \ref{sec:background}, one of the more common approaches
 %		In a file store the 32 integers and evaluation
 %	Could potentially only store a subset of these that perform best and worst?
 %	Will need to evaluate the cost of querying this as well... That will be more difficult
+% UNBALANCED TREES: find out if this is legit
+% STORAGE SIZES: To see the maximum size of tree I could store in memory
+%	Space to store the game board
+%	Space to store a node sans game board
 
 
 
-%%%%%%%%%%%%%%%%%%%% POSSIBLE HEURISTICS %%%%%%%%%%%%%%%%%%%%
-% NOTES
-%	I think we want to have heuristics on the board and not on moves
-%	We want to check the board state after the move, not the move itself
-% 	Remember that for evaluation fns we want the evaluation to be the same under monotonic transformation
-%		Want to retain the order of the numbers
-% HEURISTICS
-%	Number of stones of opponent
-%	Number of stones of self
-%	Number of possible moves of opponent
-%	Number of possible moves of self
-%	Number of capturable stones
 
-% MOVE HEURISTICS
-%	Ones that capture the largest number of stones
-%	Those that repeat for the longest (without going forever)
-%	Those that shorten the game (bring towards end faster)
-%		This might be hard to calculate
-
-
-
-%%%%%%%%%%%%%%%%%%%% STRATEGY %%%%%%%%%%%%%%%%%%%%
-% TIMING (I can only really see this being done efficiently with some sort of threading)
-%	Desired behaviour
-%		Priority 1: Stop before 2 seconds is up
-%		Priority 2: Stop as close to 2 seconds as possible
-%		Priority 3: Return the best value possible from the method
-%		Priority 4: Don't waste CPU cycles polling the timer (this is why threads would be best)
-%		Best option is to asynchronously issue a shutdown command to a running thread
-%			This will either 
-%				Try to calculate the best value available (shutting it down gracefully) (preferred)
-%					In terms of minimax, perhaps this callback will quickly backpropogate the values it has found on the incomplete level
-%					Issue: Will need extra time buffer to allow this to happen
-%				Return the best current value
-%					Can be simple as polling for a class (thread) variable
-%					Issue: Might either lose out on good values from final ms of execution
-%						Or will waste time continually updating the best value
-%	Notices
-%		The absolute best would be to issue notices at key times (like 1 second left, X ms left)
-%		In order to 
 
 
 
@@ -234,14 +257,7 @@ As was stated in Section \ref{sec:background}, one of the more common approaches
 % Ficticious play: the most studied process for games [21] and a very good example is the End Game Tchoukailon (EGT) positions
 % Also tried "co-evolution"
 %	This seemed to perform rather well
-%	Evolved an evaluation function that was a linear combination of 6 features
-%	FEATURES
-%		The number of the opponent’s pits vulnerable to having 2 stones captured on the next move
-%		The number of the opponents pits vulnerable to having 3 stones captured on the next move
-%		The number of the evolving players pits vulnerable to having 2 stones captured on the next move
-%		The number of the evolving players pits vulnerable to having 3 stones captured on the next move
-%		The current score of the opponent
-%		The current score of the evolving player 
+%	Evolved an evaluation function that was a linear combination of 6 features (first 6 in next heuristics)
 % Tried Genetic Algorithms with different metrics... this didn't work as well as the co-evolution
 %	FEATURES
 %		a1 The number of pits that the opponent can use to capture 2 seeds. Range: 0-6.

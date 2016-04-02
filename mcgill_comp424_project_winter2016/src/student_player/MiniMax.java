@@ -17,10 +17,11 @@ public class MiniMax implements Callable<HusMove> {
 	// Will want this to be iterative deepening
 	private HusMove bestMove = null;
 	private HusBoardState cloned_board_state;
-	private Node mmTreeRoot = new Node(null, Float.MIN_VALUE, null, true);
+	private Node mmTreeRoot;
 	
-	public MiniMax(HusBoardState board_state){
+	public MiniMax(HusBoardState board_state, Node mmTreeRoot){
 		cloned_board_state = (HusBoardState) board_state.clone();
+		this.mmTreeRoot = mmTreeRoot;
 	}
 	
 	// super basic for now
