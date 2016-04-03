@@ -10,11 +10,10 @@ import java.util.concurrent.Callable;
 
 import hus.HusBoardState;
 import hus.HusMove;
-import student_player.mytools.MyTools;
 
 // Technically could just do runnable
 // This will be iterative
-public class AlphaBeta implements Callable<HusMove> {
+public class AlphaBetaOptimized implements Callable<HusMove> {
 	// Will want this to be iterative deepening
 	private HusMove bestMove = null;
 	private HusBoardState cloned_board_state;
@@ -25,18 +24,27 @@ public class AlphaBeta implements Callable<HusMove> {
 	//public int count = 0;
 	//public int leafCount = 0;
 	
-	public AlphaBeta(HusBoardState board_state, Node mmTreeRoot){
+	public AlphaBetaOptimized(HusBoardState board_state, Node mmTreeRoot){
 		cloned_board_state = (HusBoardState) board_state.clone();
 		this.mmTreeRoot = mmTreeRoot;
 		this.playerNum = board_state.getTurnPlayer();
 		this.oppPlayerNum = (this.playerNum + 1) % 2;
 	}
-	
-	public AlphaBeta(HusBoardState board_state){
-		cloned_board_state = (HusBoardState) board_state.clone();
-		this.mmTreeRoot = new Node(null, null, true);
-		this.playerNum = board_state.getTurnPlayer();
-		this.oppPlayerNum = (this.playerNum + 1) % 2;
+		
+	// super basic for now
+	private float estimateNodeValue(HusBoardState state){
+		// state.getLegalMoves().size();
+		int[][] pits = state.getPits();
+		
+		int[] player_pits = pits[playerNum];
+        int[] opp_pits = pits[oppPlayerNum];
+        
+        int value = 0;
+        for (int i = 0; i < player_pits.length; i++){
+        	value += player_pits[i] - opp_pits[i];
+        }
+        
+        return value;
 	}
 
 	@Override
@@ -84,7 +92,7 @@ public class AlphaBeta implements Callable<HusMove> {
 			// Estimate the value of the node 
 			// This value will be based on the heuristics
 			//		that are based on the board state
-			return MyTools.seedDifference(state, playerNum, oppPlayerNum);
+			return estimateNodeValue(state);
 		}
 		
 		List<Node> nodeList = new ArrayList<Node>();

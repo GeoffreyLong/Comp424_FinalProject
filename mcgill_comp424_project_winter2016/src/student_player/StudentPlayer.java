@@ -27,7 +27,7 @@ public class StudentPlayer extends HusPlayer {
      * This is important, because this is what the code that runs the
      * competition uses to associate you with your agent.
      * The constructor should do nothing else. */
-    public StudentPlayer() { super("260403840"); }
+    public StudentPlayer() { super("AlphaBetaSimple"); }
 
     /** This is the primary method that you need to implement.
      * The ``board_state`` object contains the current state of the game,
@@ -68,8 +68,8 @@ public class StudentPlayer extends HusPlayer {
     	// In order to change the faceoff, change the 51st line of autoplay.Autoplay
     	// pits -> Each player has an array of pits
     	//		The pits are indexed counter clockwise, starting from bottom left
-    	//		[15][14][13][12][11][10][9]	[8]
-    	//  	[0]	[1]	[2]	[3]	[4]	[5]	[6]	[7]
+    	//		[32][31] ... [18][17]
+    	//  	[0]	[1]	 ... [15][16]
     	// board_state.getLegalMoves() -> All of the moves that I can do
     	// HusMove.getPit() -> will return the pit number of the move
     	
@@ -114,6 +114,18 @@ public class StudentPlayer extends HusPlayer {
         	
         }*/
     	
+    	/*
+    	int[][] pits = board_state.getPits();
+		
+		int[] player_pits = pits[0];
+        int[] opp_pits = pits[1];
+        
+        for (int i = 0; i < player_pits.length; i++){
+        	System.out.println(i);
+        	System.out.println(player_pits[i]);
+        	System.out.println(opp_pits[i]);
+        }
+        */
         
         // Use executor to handle the timing
         ExecutorService executor = Executors.newSingleThreadExecutor();
@@ -122,9 +134,8 @@ public class StudentPlayer extends HusPlayer {
         Future<HusMove> future = executor.submit(mm);
         HusMove move = null;
         
-        
         try {
-        	move = future.get(1250, TimeUnit.MILLISECONDS);
+        	move = future.get(1300, TimeUnit.MILLISECONDS);
 		} catch (InterruptedException e) {
 			System.out.println("interrupt");
 		} catch (ExecutionException e) {
