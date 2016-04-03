@@ -54,8 +54,7 @@ Student \#260403840 \\
 \section{Introduction}
 Hus is a game that lends itself well to AI development. It is from a family of rather well studied Mancala games, although Hus itself is rather unstudied. There are several variations of Mancala, but they all share the basic principles. Specifically that the board has holes which are ordered into rows; the game is played with indistinguishable tokens (henceforth referred to as seeds); each player owns a fixed and equal number of holes on the board; a move involves taking the seeds out of a selected hole and placing them one-by-one in subsequent holes (this is often referred to as sowing); the sowing may or may not terminate with capture conditions which allow a given player to seize another's seeds; and the goal of the game is to capture the most (or all) of the seeds \cite{donkers2002programming}. In Hus, there are 4 rows of 8 holes a piece, and each player owns the 2 rows closest to them. Each player begins their turn by choosing a hole with more than one seed. If they cannot do this, they have lost the game. All of the seeds are taken from the hole and sowed one-by-one in a counter clockwise manner starting with the hole directly after the initially chosen hole. If the sowing ends on a previously occupied hole, then the seeds are taken. If the previously occupied hole is in an inner row, then the opponent's seeds on the same column can also be seized. If there are seeds to be sown, then the player continues as before.
 
-As can be seen, %TODO try to say that it lends itself well to AI development without saying exactly that
-Since the problem has a discrete state space, the search will be over a finite set of different game states. The changes between states in this state space is deterministic. This means that for each player action, we know exactly what the outcome will be. We might not know the full effect of the move due to the execution time constraints, but we know the immediate effects and how this alters the game flow over a finite span. This lowers the complexity and ensures that we will know the exact state of the board given a set of moves. This allows us to plan more effectively and with more certainty. The static and observable nature of the environment affords us similar benefits. Since the information on the game is perfect, planning can be performed with greater certainty. 
+There are several reasons why Hus is a good candidate for an AI agent. Since the problem has a discrete state space, the search will be over a finite set of different game states. The changes between states in this state space is deterministic. This means that for each player action, we know exactly what the outcome will be. We might not know the full effect of the move due to the execution time constraints, but we know the immediate effects and how this alters the game flow over a finite span. This lowers the complexity and ensures that we will know the exact state of the board given a set of moves. This allows us to plan more effectively and with more certainty. The static and observable nature of the environment affords us similar benefits. Since the information on the game is perfect, planning can be performed with greater certainty. 
 
 The game rules themselves also help to make planning easier. There is a finite set of moves that can be applied at each turn, each with the same basic operator. Each player has the same simple moves and has the same simple goal, so it is easy to see the relationship between the players. The immediate cost of a player's action can be easily observed by counting the number of stones gained or lost. The simple rules, few operators, and observable cost all make it easier to derive a well rounded set of heuristics for estimating the quality of a move. The heuristics (discussed in Section \ref{sec:heuristics}) are really what drives the AI agent to the goal quickly. 
 % Therefore, the quality of a move can be determined rather easily within a finite frame of subsequent moves. 
@@ -152,6 +151,8 @@ The minimax itself works like any other minimax algorithm. The game tree is walk
 %		This might be hard to calculate
 
 
+\subsection{Alternate Approaches and Issues Encountered}
+% The whole thread issue
 
 \section{Testing}
 
@@ -182,6 +183,46 @@ The minimax itself works like any other minimax algorithm. The game tree is walk
 %	Space to store a node sans game board
 
 
+%%%%%%%%%%%%%%%%%%%% METRICS %%%%%%%%%%%%%%%%%%%%
+% ITERATION ONE
+%	Average number of leaves per minimax: 
+%		1051495
+%		750749
+%		854290
+%		602671
+%		847298
+%		731317
+%		749730
+%		836126
+%		661717
+%		623239
+%		663709
+%		884839
+%		1012738
+%		754206
+%		766003
+%		801620
+%	Average number of node traversals per minimax (incl leaves):
+%		914559
+%		669051
+%		795291
+%		546653
+%		746038
+%		630585
+%		669416
+%		711974
+%		572449
+%		553422
+%		582389
+%		735894
+%		872099
+%		684988
+%		653065
+%		695120
+%	Average depth:
+%		About 5 for intial moves
+%		Increases to around 8
+%		Very end can get to the 100s of thousands (though probably not going that deep, just relic of while + shallow tree)
 
 
 

@@ -21,6 +21,8 @@ public class MiniMax implements Callable<HusMove> {
 	private int playerNum;
 	private int oppPlayerNum;
 	private boolean isInterrupted = false;
+	//public int count = 0;
+	//public int leafCount = 0;
 	
 	public MiniMax(HusBoardState board_state, Node mmTreeRoot){
 		cloned_board_state = (HusBoardState) board_state.clone();
@@ -61,6 +63,7 @@ public class MiniMax implements Callable<HusMove> {
 		// Not a really bad problem though?
 		while (true){
 			depth += 1;
+			System.out.println(depth);
 			//System.out.println(depth);
 			// Recloning will also be slow
 			// Would be best if we could just continue on from where we left off
@@ -91,9 +94,10 @@ public class MiniMax implements Callable<HusMove> {
 	//		If I do, do I need to delete the clone to save memory?
 	private float minimax(HusBoardState state, Node parent, int depth, boolean isMax){
 		ArrayList<HusMove> moves = state.getLegalMoves();
-		
+		//count++;
 		if (Thread.interrupted()) isInterrupted = true;
 		if (depth == 0 || moves.size() == 0 || isInterrupted){
+			//leafCount++;
 			// If we are at a leaf or the max depth 
 			// (which is basically like a leaf for our purposes)
 			// Estimate the value of the node 

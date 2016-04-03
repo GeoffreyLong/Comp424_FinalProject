@@ -19,6 +19,9 @@ import student_player.mytools.MyTools;
 /** A Hus player submitted by a student. */
 public class StudentPlayer extends HusPlayer {
 	private Node mmTreeRoot = new Node(null, Float.MIN_VALUE, null, true);
+	private float avgLeaf = 0;
+	private float avgCount = 0;
+	private int count = 0;
 	
     /** You must modify this constructor to return your student number.
      * This is important, because this is what the code that runs the
@@ -141,6 +144,15 @@ public class StudentPlayer extends HusPlayer {
         future.cancel(true);
         while(!future.isDone());
         move = mm.getBestMove();
+        
+        /*
+        count ++;
+        avgCount = avgCount + (mm.count - avgCount) / count;
+        avgLeaf = avgLeaf + (mm.leafCount - avgLeaf) / count;
+        System.out.println(count);
+        System.out.println(avgCount);
+        System.out.println(avgLeaf);
+        */
         
         //System.out.println("Hello" + move.toPrettyString());
         executor.shutdownNow();
