@@ -62,7 +62,7 @@ public class AlphaBeta implements Callable<HusMove> {
 		// Performs useless calculations when the tree isn't deep
 		// Not a really bad problem though?
 		while (true){
-			// depth += 1;
+			depth += 1;
 			// System.out.println(depth);
 
 			// Recloning will also be slow

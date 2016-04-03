@@ -124,7 +124,7 @@ public class StudentPlayer extends HusPlayer {
         
         
         try {
-        	move = future.get(1800, TimeUnit.MILLISECONDS);
+        	move = future.get(1250, TimeUnit.MILLISECONDS);
 		} catch (InterruptedException e) {
 			System.out.println("interrupt");
 		} catch (ExecutionException e) {
@@ -140,7 +140,6 @@ public class StudentPlayer extends HusPlayer {
 			
 		}
         
-        System.out.println(board_state.getTurnNumber());
         
         // Just in case
         future.cancel(true);
