@@ -13,7 +13,7 @@ import hus.HusMove;
 
 // Technically could just do runnable
 // This will be iterative
-public class MiniMax implements Callable<HusMove> {
+public class AlphaBeta implements Callable<HusMove> {
 	// Will want this to be iterative deepening
 	private HusMove bestMove = null;
 	private HusBoardState cloned_board_state;
@@ -24,14 +24,14 @@ public class MiniMax implements Callable<HusMove> {
 	//public int count = 0;
 	//public int leafCount = 0;
 	
-	public MiniMax(HusBoardState board_state, Node mmTreeRoot){
+	public AlphaBeta(HusBoardState board_state, Node mmTreeRoot){
 		cloned_board_state = (HusBoardState) board_state.clone();
 		this.mmTreeRoot = mmTreeRoot;
 		this.playerNum = board_state.getTurnPlayer();
 		this.oppPlayerNum = (this.playerNum + 1) % 2;
 	}
 	
-	public MiniMax(HusBoardState board_state){
+	public AlphaBeta(HusBoardState board_state){
 		cloned_board_state = (HusBoardState) board_state.clone();
 		this.mmTreeRoot = new Node(null, null, true);
 		this.playerNum = board_state.getTurnPlayer();
@@ -68,7 +68,7 @@ public class MiniMax implements Callable<HusMove> {
 			// Recloning will also be slow
 			// Would be best if we could just continue on from where we left off
 			// This "in-between" is a simple backpropagation of values
-			minimax(cloned_board_state, mmTreeRoot, depth, true);
+			alphabeta(cloned_board_state, mmTreeRoot, depth, Float.MIN_VALUE, Float.MAX_VALUE, true);
 
 			float bestValue = Float.MIN_VALUE;
 			for (Node node : mmTreeRoot.children){
@@ -84,18 +84,14 @@ public class MiniMax implements Callable<HusMove> {
 		return bestMove;
 	}
 	
-	// Adapted from pseudocode found on https://en.wikipedia.org/wiki/Minimax
-	// TODO use the fact that we have already iterated down once
-	//		Might be able to save previous values? Don't think so though
-	// TODO I pass a clone each time
-	//		Do I need to do this?
-	//			This seems expensive, might want to optimize
-	//			Might be able to simply apply the moves to the board each time?
-	//		If I do, do I need to delete the clone to save memory?
-	private float minimax(HusBoardState state, Node parent, int depth, boolean isMax){
+	// Adapted from pseudocode found on https://en.wikipedia.org/wiki/alpha-beta_pruning
+	private float alphabeta(HusBoardState state, Node parent, int depth, float alpha, float beta, boolean isMax){
 		ArrayList<HusMove> moves = state.getLegalMoves();
-		//count++;
+
+		// Necessary to set this flag since Thread.interrupted() resets when called
 		if (Thread.interrupted()) isInterrupted = true;
+
+		// If max depth reached or if thread was interrupted
 		if (depth == 0 || moves.size() == 0 || isInterrupted){
 			//leafCount++;
 			// If we are at a leaf or the max depth 
@@ -111,24 +107,26 @@ public class MiniMax implements Callable<HusMove> {
 		// Maximizing player
 		if (isMax){
 			// Set best value to negative infinity
-			float bestValue = Float.MIN_VALUE;
+			float bestValue = alpha;
 			
 			// Iterate through all the moves
 			for (HusMove move : moves){
 				Node node = new Node(parent,move,isMax);
 				
 				HusBoardState tempState = (HusBoardState) state.clone();
-				
 				// TODO Add if statement to check for infinite moves
 				tempState.move(move);
 
-				float value = minimax(tempState, node, depth-1, false);
+				float value = alphabeta(tempState, node, depth-1, alpha, beta, false);
 				
-				if (value >= bestValue){
-					bestValue = value;
-				}
+				if (value > bestValue) bestValue = value;
+				if (value > alpha) alpha = value;
+
 				node.value = value;
 				nodeList.add(node);
+
+				// Beta cutoff
+				if (beta <= alpha) break;
 				
 			}
 			
@@ -138,7 +136,7 @@ public class MiniMax implements Callable<HusMove> {
 		// Minimizing player
 		else{
 			// Set best value to positive infinity
-			float bestValue = Float.MAX_VALUE;
+			float bestValue = beta;
 			
 			// Iterate through all the moves
 			for (HusMove move : moves){
@@ -147,13 +145,16 @@ public class MiniMax implements Callable<HusMove> {
 				HusBoardState tempState = (HusBoardState) state.clone();
 				tempState.move(move);
 
-				float value = minimax(tempState, node, depth-1, true);
+				float value = alphabeta(tempState, node, depth-1, alpha, beta, true);
 				
-				if (value <= bestValue){
-					bestValue = value;
-				}
+				if (value < bestValue) bestValue = value;
+				if (value < beta) beta = value;
+				
 				node.value = value;
 				nodeList.add(node);
+
+				// Alpha cutoff
+				if (beta <= alpha) break;				
 			}
 			
 			parent.children = nodeList;
