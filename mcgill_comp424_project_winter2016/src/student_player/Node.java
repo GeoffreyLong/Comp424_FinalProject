@@ -3,6 +3,7 @@ package student_player;
 import java.util.ArrayList;
 import java.util.List;
 
+import hus.HusBoardState;
 import hus.HusMove;
 
 /**
@@ -22,6 +23,7 @@ public class Node {
 	
 	// Questionable call for this... might be better with an enum
 	public boolean isMax;
+	public HusBoardState boardState;
 	
 	// Set the attributes of the node
 	public Node(Node parent, float value, HusMove move, boolean isMax){
@@ -41,5 +43,13 @@ public class Node {
 		else{
 			this.value = Float.MAX_VALUE;
 		}
+	}
+	
+	public Node(Node parent, float value, HusMove move, HusBoardState boardState, boolean isMax){
+		this.parent = parent;
+		this.value = value;
+		this.move = move;
+		this.boardState = boardState;
+		this.isMax = isMax;
 	}
 }
