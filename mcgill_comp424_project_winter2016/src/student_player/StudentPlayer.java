@@ -95,42 +95,47 @@ public class StudentPlayer extends HusPlayer {
         // We can see the effects of a move like this...
     	//HusBoardState cloned_board_state = (HusBoardState) board_state.clone();
         //cloned_board_state.move(move);
+
     	
-  
-    	// TO TEST HOW MANY NODES FIT IN MEMORY
-    	/*
-    	float value = 0;
-        while(true){
-        	value += 1;
-        	HusMove mover = board_state.getLegalMoves().get(0);
-        	Node node = new Node(mmTreeRoot,(float) value,mover, true, (HusBoardState) board_state.clone());
-        	ArrayList<Node> nodeList = new ArrayList<Node>();
-        	mmTreeRoot.children = nodeList;
-        	mmTreeRoot = node;
-        	if (mover == null){break;}
-        	if (value % 10000 == 0){
-        		System.out.println(String.valueOf(value) + '\t' + Runtime.getRuntime().freeMemory());
-        	}
-        	
-        }*/
+    	int count = 0;
+    	int count1 = 0;
+    	int count2 = 0;
+    	int count3 = 0;
+    	int count4 = 0;
+    	for (HusMove move : board_state.getLegalMoves()){
+    		HusBoardState state = (HusBoardState) board_state.clone();
+    		state.move(move);
+    		count ++;
+    		for (HusMove move2 : state.getLegalMoves()){
+    			HusBoardState state2 = (HusBoardState) state.clone();
+    			state2.move(move2);
+    			count1 ++;
+    			for (HusMove move3 : state2.getLegalMoves()){
+    				HusBoardState state3 = (HusBoardState) state2.clone();
+    				state3.move(move3);
+    				count2 ++;
+    				for (HusMove move4 : state3.getLegalMoves()){
+    					HusBoardState state4 = (HusBoardState) state3.clone();
+        				state4.move(move4);
+        				count3 ++;   
+        				for (HusMove move5 : state4.getLegalMoves()){
+        					count4 ++;
+        				}
+    				}
+    			}
+    		}
+    	}
+        System.out.println("count: " + count);
+        System.out.println("count1: " + count1);
+        System.out.println("count2: " + count2);
+        System.out.println("count3: " + count3);
+        System.out.println("count4: " + count4);
     	
-    	/*
-    	int[][] pits = board_state.getPits();
-		
-		int[] player_pits = pits[0];
-        int[] opp_pits = pits[1];
-        
-        for (int i = 0; i < player_pits.length; i++){
-        	System.out.println(i);
-        	System.out.println(player_pits[i]);
-        	System.out.println(opp_pits[i]);
-        }
-        */
-        
+    	
         // Use executor to handle the timing
         ExecutorService executor = Executors.newSingleThreadExecutor();
-        MiniMax mm = new MiniMax(board_state,mmTreeRoot);
-        // AlphaBeta mm = new AlphaBeta(board_state);
+        // MiniMax mm = new MiniMax(board_state,mmTreeRoot);
+        AlphaBeta mm = new AlphaBeta(board_state);
         Future<HusMove> future = executor.submit(mm);
         HusMove move = null;
         
@@ -139,12 +144,12 @@ public class StudentPlayer extends HusPlayer {
 		} catch (InterruptedException e) {
 			System.out.println("interrupt");
 		} catch (ExecutionException e) {
+			// Print stack trace if there is an error
 			System.out.println("interrupt1");
 			StringWriter writer = new StringWriter();
 			e.printStackTrace( new PrintWriter(writer,true ));
 			System.out.println("exeption stack is :\n"+writer.toString());
 		} catch (TimeoutException e) {
-			// TODO Auto-generated catch block
 			// System.out.println("Timeout");
 			future.cancel(true);
 		} finally {
@@ -152,24 +157,16 @@ public class StudentPlayer extends HusPlayer {
 		}
         
         
-        // Just in case
+        // Throw another cancel just in case
         future.cancel(true);
+        
+        // Wait for back-propagation to complete, then get the best move
         while(!future.isDone());
         move = mm.getBestMove();
         
-        /*
-        count ++;
-        avgCount = avgCount + (mm.count - avgCount) / count;
-        avgLeaf = avgLeaf + (mm.leafCount - avgLeaf) / count;
-        System.out.println(count);
-        System.out.println(avgCount);
-        System.out.println(avgLeaf);
-        */
-        
-        //System.out.println("Hello" + move.toPrettyString());
+        // Shut down the executor
         executor.shutdownNow();
         
-        // But since this is a placeholder algorithm, we won't act on that information.
         return move;
     }
 }

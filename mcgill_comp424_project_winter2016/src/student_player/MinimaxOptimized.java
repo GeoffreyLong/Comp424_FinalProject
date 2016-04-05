@@ -41,10 +41,9 @@ public class MinimaxOptimized implements Callable<Node> {
 			
 			// Remove this attribute to save space
 			// The values at these nodes will be backpropagated, 
-			// 		so we never need to calculate them
+			// So we never need to calculate them
+			// Save some space by setting the boardState to null
 			curNode.boardState = null;
-			
-			//System.out.println(curState.getLegalMoves().toString());
 			
 			for (HusMove move : curState.getLegalMoves()){
 				HusBoardState newState = (HusBoardState) curState.clone();
@@ -94,7 +93,6 @@ public class MinimaxOptimized implements Callable<Node> {
 						|| (!parent.isMax && curNode.value < parent.value))
 						&& curNode.value != Float.MAX_VALUE && curNode.value != Float.MIN_VALUE){
 					parent.value = curNode.value;
-					//System.out.println(parent.value + " " + parent.isMax);
 				}			
 	
 				if (tempQueue.peekFirst() != parent) tempQueue.addFirst(parent);
@@ -108,12 +106,6 @@ public class MinimaxOptimized implements Callable<Node> {
 	public Node getBestNode(){
 		float bestValue = Float.MIN_VALUE;
 		for (Node node : mmTreeRoot.children){
-			//System.out.println(node.value);
-			// In the event of a tie might want to look at the grandchildren of root
-			//for (Node newnode : node.children)	
-			//	for (Node a : newnode.children) 
-			//		for (Node b : newnode.children) 
-			//				System.out.println("Best: " + b.value);
 			if (node.value > bestValue && node.value != Float.MAX_VALUE){
 				bestValue = node.value;
 				bestNode = node;

@@ -4,7 +4,7 @@ import hus.HusBoardState;
 
 public class MyTools {
 
-    public static double getSomething(){
+    public static double getRandom(){
         return Math.random();
     }
     
@@ -49,7 +49,7 @@ public class MyTools {
         return value;
 	}
 	
-	private float simpleCapturablePits(HusBoardState state, int playerNum, int oppPlayerNum){
+	public static float simpleCapturablePits(HusBoardState state, int playerNum, int oppPlayerNum){
 		// This is a negative value
 		// It is a rough guesstimate on the number of pits capturable by opp
 		// Simply sees which of the opp's inner pits are filled, and which of ours are
@@ -70,4 +70,6 @@ public class MyTools {
         
         return badPits;
 	}
+	
+	
 }
