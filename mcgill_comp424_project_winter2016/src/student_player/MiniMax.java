@@ -42,7 +42,7 @@ public class MiniMax implements Callable<HusMove> {
 	@Override
 	public HusMove call() throws Exception {
 		// TODO Auto-generated method stub
-		int depth = 0;
+		int depth = 4;
 		
 		// Performs useless calculations when the tree isn't deep
 		// Not a really bad problem though?
@@ -57,6 +57,7 @@ public class MiniMax implements Callable<HusMove> {
 
 			float bestValue = Float.MIN_VALUE;
 			for (Node node : mmTreeRoot.children){
+				//System.out.println(node.value);
 				// In the event of a tie might want to look at the grandchildren of root
 				if (node.value > bestValue){
 					bestValue = node.value;

@@ -1,6 +1,7 @@
 package student_player;
 
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
@@ -10,13 +11,12 @@ import hus.HusBoardState;
 import hus.HusMove;
 import student_player.mytools.MyTools;
 
-public class MinimaxOptimized implements Callable<HusMove> {
-	private HusMove bestMove = null;
+public class MinimaxOptimized implements Callable<Node> {
+	private Node bestNode = null;
 	private HusBoardState cloned_board_state;
 	private Node mmTreeRoot;
 	private int playerNum;
 	private int oppPlayerNum;
-	private boolean isInterrupted = false;
 	private Queue<Node> queue;
 
 	public MinimaxOptimized(HusBoardState board_state, Node mmTreeRoot, Queue<Node> queue){
@@ -28,9 +28,11 @@ public class MinimaxOptimized implements Callable<HusMove> {
 	}
 	
 	@Override
-	public HusMove call() throws Exception {
-		List<Node> leaves = new LinkedList<Node>();
-		while (!isInterrupted && !queue.isEmpty()){
+	public Node call() throws Exception {
+		// This is create a new queue which is a reverse version of the old
+		Deque<Node> tempQueue = new LinkedList<Node>();
+		
+		while (!queue.isEmpty()){
 			if (Thread.interrupted()) break;
 
 			Node curNode = queue.poll();
@@ -38,7 +40,11 @@ public class MinimaxOptimized implements Callable<HusMove> {
 			HusBoardState curState = curNode.boardState;
 			
 			// Remove this attribute to save space
+			// The values at these nodes will be backpropagated, 
+			// 		so we never need to calculate them
 			curNode.boardState = null;
+			
+			//System.out.println(curState.getLegalMoves().toString());
 			
 			for (HusMove move : curState.getLegalMoves()){
 				HusBoardState newState = (HusBoardState) curState.clone();
@@ -57,58 +63,62 @@ public class MinimaxOptimized implements Callable<HusMove> {
 				queue.add(newNode);
 			}
 			
-			curNode.children = children;			
-			if (children.isEmpty()) leaves.add(curNode);			
+			curNode.children = children;	
+			
+			// Leaf node
+			if (children.isEmpty()){
+				curNode.boardState = curState;
+				tempQueue.add(curNode);			
+			}
 		}
 		
-		// Not super sure what this will do
-		// TODO check it, hopefully will not remove the nodes
-		// This is create a new queue which is a reverse version of the old
-		Queue<Node> tempQueue = new LinkedList<Node>();
-		Node[] tempArray = (Node[]) queue.toArray();
-		for (int i = tempArray.length-1; i >= 0; i--){
-			tempQueue.add(tempArray[i]);
-		}
+		tempQueue.addAll(queue);
 		
-		// Theoretically could do away with leaves, put tempQueue at the top
-		// And add the leaves in there as they appear in BFS
-		// But this would be inefficient since the leaves would be processed first
-		// By the below, and we don't want that
-		tempQueue.addAll(leaves);
-
-		Node lastEntered = null;
 		while(!tempQueue.isEmpty()){
 			// Could theoretically create a second interrupter to break out of this
 			// This will keep hard time constraints
-			if (Thread.interrupted()) break;
+			// Actually, can't do this, if I do then values are wrong!
+			// if (Thread.interrupted()) break;
 			
 			// Get value of Node
-			Node curNode = tempQueue.poll();
-			curNode.value = MyTools.seedDifference(curNode.boardState, playerNum, oppPlayerNum);
-
+			Node curNode = tempQueue.removeLast();
+			if ((curNode.value == Float.MAX_VALUE || curNode.value == Float.MIN_VALUE)
+					&& curNode.boardState != null){
+				curNode.value = MyTools.seedDifference(curNode.boardState, playerNum, oppPlayerNum);
+			}
+			
 			// BackPropagation
 			Node parent = curNode.parent;
-			if ((parent.isMax && curNode.value > parent.value)
-					|| (!parent.isMax && curNode.value < parent.value)){
-				parent.value = curNode.value;
-				if (lastEntered != parent) tempQueue.add(parent);
-			}			
-		}
-		
-		
-		return getBestMove();
-	}
+			if (parent != null){
+				if (((parent.isMax && curNode.value > parent.value)
+						|| (!parent.isMax && curNode.value < parent.value))
+						&& curNode.value != Float.MAX_VALUE && curNode.value != Float.MIN_VALUE){
+					parent.value = curNode.value;
+					//System.out.println(parent.value + " " + parent.isMax);
+				}			
 	
-	// TODO remove some useless code
-	public HusMove getBestMove(){
-		float bestValue = Float.MIN_VALUE;
-		for (Node node : mmTreeRoot.children){
-			// In the event of a tie might want to look at the grandchildren of root
-			if (node.value > bestValue){
-				bestValue = node.value;
-				bestMove = node.move;
+				if (tempQueue.peekFirst() != parent) tempQueue.addFirst(parent);
 			}
 		}
-		return this.bestMove;
+		
+		
+		return getBestNode();
+	}
+	
+	public Node getBestNode(){
+		float bestValue = Float.MIN_VALUE;
+		for (Node node : mmTreeRoot.children){
+			//System.out.println(node.value);
+			// In the event of a tie might want to look at the grandchildren of root
+			//for (Node newnode : node.children)	
+			//	for (Node a : newnode.children) 
+			//		for (Node b : newnode.children) 
+			//				System.out.println("Best: " + b.value);
+			if (node.value > bestValue && node.value != Float.MAX_VALUE){
+				bestValue = node.value;
+				bestNode = node;
+			}
+		}
+		return this.bestNode;
 	}
 }

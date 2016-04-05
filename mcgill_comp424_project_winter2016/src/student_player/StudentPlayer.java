@@ -129,8 +129,8 @@ public class StudentPlayer extends HusPlayer {
         
         // Use executor to handle the timing
         ExecutorService executor = Executors.newSingleThreadExecutor();
-        // MiniMax mm = new MiniMax(board_state,mmTreeRoot);
-        AlphaBeta mm = new AlphaBeta(board_state);
+        MiniMax mm = new MiniMax(board_state,mmTreeRoot);
+        // AlphaBeta mm = new AlphaBeta(board_state);
         Future<HusMove> future = executor.submit(mm);
         HusMove move = null;
         

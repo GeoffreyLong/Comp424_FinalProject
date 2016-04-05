@@ -38,14 +38,50 @@ public class OptPlayer extends HusPlayer {
         // Use executor to handle the timing
         ExecutorService executor = Executors.newSingleThreadExecutor();
         
-        mmTreeRoot.boardState = (HusBoardState) board_state.clone();
-        if (board_state.getTurnNumber() <= 1) queue.add(mmTreeRoot);
+        //System.out.println(board_state.getTurnNumber());
+        if (board_state.getTurnNumber() == 0){
+        	mmTreeRoot.boardState = (HusBoardState) board_state.clone();
+            queue.add(mmTreeRoot);
+        }
+        else{
+        	int count = 0;
+        	Node nodeSet = null;
+        	float eval = MyTools.seedDifference(board_state, board_state.getTurnPlayer(), (board_state.getTurnPlayer() + 1) % 2);
+        	//System.out.println("new eval: " + eval);
+        	if (mmTreeRoot != null){
+	        	for (Node node : mmTreeRoot.children){
+	        		//System.out.println(node.value);
+	        		if (node.value == eval){
+	        			nodeSet = node;
+	        			count ++;
+	        		}
+	        	}
+        	}
+	        if (count == 1){
+        		mmTreeRoot = nodeSet;
+        		System.out.println("Found next");
+        	}
+        	else{
+        		// Couldn't find next node corresponding to opp's move
+        		//		Or found two...
+        		// Need to clear the queue and the root node
+        		// Very unfortunate
+        		System.out.println("Couldn't find next, clearing... :(");
+        		queue.clear();
+        		mmTreeRoot = new Node(null, Float.MIN_VALUE, null, true);
+        		mmTreeRoot.boardState = (HusBoardState) board_state.clone();
+        		queue.add(mmTreeRoot);
+        	}
+        }
+
+        // clear mmTreeRoot parent
+        mmTreeRoot.parent = null;
         MinimaxOptimized mm = new MinimaxOptimized(board_state, mmTreeRoot, queue);
-        Future<HusMove> future = executor.submit(mm);
+        Future<Node> future = executor.submit(mm);
         HusMove move = null;
         
         try {
-        	move = future.get(1250, TimeUnit.MILLISECONDS);
+        	mmTreeRoot = future.get(800, TimeUnit.MILLISECONDS);
 		} catch (InterruptedException e) {
 			System.out.println("interrupt");
 		} catch (ExecutionException e) {
@@ -61,18 +97,26 @@ public class OptPlayer extends HusPlayer {
 			
 		}
         
+        /*
+        System.out.println(future.isCancelled());
         try {
 			Thread.sleep(500);
 		} catch (InterruptedException e) {
 			System.out.println("Error in Sleep");
 		}
+        */
         
 		future.cancel(true);
+		
         // Might not want this line
+		// Spinwait
 		while(!future.isDone());
-
-		move = mm.getBestMove();
-                
+		// System.out.println(future.isDone());
+		mmTreeRoot = mm.getBestNode();
+		move = mmTreeRoot.move;
+		System.out.println("MOVE VALUE: " + mmTreeRoot.value);
+		
+		
         //System.out.println("Hello" + move.toPrettyString());
         executor.shutdownNow();
         
