@@ -24,6 +24,7 @@ public class AlphaBeta implements Callable<HusMove> {
 	private boolean isInterrupted = false;
 	//public int count = 0;
 	//public int leafCount = 0;
+	private int[] weights;
 	
 	public AlphaBeta(HusBoardState board_state, Node mmTreeRoot){
 		cloned_board_state = (HusBoardState) board_state.clone();
@@ -32,11 +33,12 @@ public class AlphaBeta implements Callable<HusMove> {
 		this.oppPlayerNum = (this.playerNum + 1) % 2;
 	}
 	
-	public AlphaBeta(HusBoardState board_state){
+	public AlphaBeta(HusBoardState board_state, int[] weights){
 		cloned_board_state = (HusBoardState) board_state.clone();
 		this.mmTreeRoot = new Node(null, null, true);
 		this.playerNum = board_state.getTurnPlayer();
 		this.oppPlayerNum = (this.playerNum + 1) % 2;
+		this.weights = weights;
 	}
 
 	@Override
@@ -84,7 +86,7 @@ public class AlphaBeta implements Callable<HusMove> {
 			// Estimate the value of the node 
 			// This value will be based on the heuristics
 			//		that are based on the board state
-			return MyTools.seedDifference(state, playerNum, oppPlayerNum);
+			return MyTools.opt_evaluator(state, playerNum, oppPlayerNum, weights);
 		}
 		
 		List<Node> nodeList = new ArrayList<Node>();

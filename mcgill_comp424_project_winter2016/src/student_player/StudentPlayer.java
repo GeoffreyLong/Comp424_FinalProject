@@ -97,40 +97,6 @@ public class StudentPlayer extends HusPlayer {
         //cloned_board_state.move(move);
 
     	
-    	int count = 0;
-    	int count1 = 0;
-    	int count2 = 0;
-    	int count3 = 0;
-    	int count4 = 0;
-    	for (HusMove move : board_state.getLegalMoves()){
-    		HusBoardState state = (HusBoardState) board_state.clone();
-    		state.move(move);
-    		count ++;
-    		for (HusMove move2 : state.getLegalMoves()){
-    			HusBoardState state2 = (HusBoardState) state.clone();
-    			state2.move(move2);
-    			count1 ++;
-    			for (HusMove move3 : state2.getLegalMoves()){
-    				HusBoardState state3 = (HusBoardState) state2.clone();
-    				state3.move(move3);
-    				count2 ++;
-    				for (HusMove move4 : state3.getLegalMoves()){
-    					HusBoardState state4 = (HusBoardState) state3.clone();
-        				state4.move(move4);
-        				count3 ++;   
-        				for (HusMove move5 : state4.getLegalMoves()){
-        					count4 ++;
-        				}
-    				}
-    			}
-    		}
-    	}
-        System.out.println("count: " + count);
-        System.out.println("count1: " + count1);
-        System.out.println("count2: " + count2);
-        System.out.println("count3: " + count3);
-        System.out.println("count4: " + count4);
-    	
     	
         // Use executor to handle the timing
         ExecutorService executor = Executors.newSingleThreadExecutor();

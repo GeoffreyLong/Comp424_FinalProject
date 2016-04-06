@@ -89,7 +89,7 @@ public class MiniMax implements Callable<HusMove> {
 			// Estimate the value of the node 
 			// This value will be based on the heuristics
 			//		that are based on the board state
-			return MyTools.opt_evaluator(state, playerNum, oppPlayerNum);
+			return MyTools.seedDifference(state, playerNum, oppPlayerNum);
 		}
 		
 		List<Node> nodeList = new ArrayList<Node>();

@@ -44,13 +44,13 @@ public class Autoplay
             Process server = server_pb.start();
 
             ProcessBuilder client1_pb = new ProcessBuilder(
-                    "java", "-cp", "bin", "-Xms520m", "-Xmx520m", "boardgame.Client", "student_player.StudentPlayer");
+                    "java", "-cp", "bin", "-Xms520m", "-Xmx520m", "boardgame.Client", "student_player.EvolvingPlayerOne");
 //            		"java", "-cp", "bin", "-Xms520m", "-Xmx520m", "boardgame.Client", "student_player.OptPlayer");
             client1_pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
 
             ProcessBuilder client2_pb = new ProcessBuilder(
 //                    "java", "-cp", "bin", "-Xms520m", "-Xmx520m", "boardgame.Client", "student_player.OpponentPlayer");
-                    "java", "-cp", "bin", "-Xms520m", "-Xmx520m", "boardgame.Client", "hus.RandomHusPlayer");
+                    "java", "-cp", "bin", "-Xms520m", "-Xmx520m", "boardgame.Client", "student_player.EvolvingPlayerTwo");
 //            		"java", "-cp", "bin", "-Xms520m", "-Xmx520m", "boardgame.Client", "student_player.OptPlayer");
             client2_pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
 
@@ -58,7 +58,7 @@ public class Autoplay
                 System.out.println("Game "+i);
 
                 try {
-                    Thread.sleep(500);
+                    Thread.sleep(2000);
                 } catch(InterruptedException ex) {
                     Thread.currentThread().interrupt();
                 }
@@ -66,7 +66,7 @@ public class Autoplay
                 Process client1 = ((i % 2 == 0) ? client1_pb.start() : client2_pb.start());
 
                 try {
-                    Thread.sleep(500);
+                    Thread.sleep(2000);
                 } catch(InterruptedException ex) {
                     Thread.currentThread().interrupt();
                 }
