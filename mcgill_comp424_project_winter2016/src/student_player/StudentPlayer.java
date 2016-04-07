@@ -15,6 +15,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
@@ -42,7 +43,7 @@ public class StudentPlayer extends HusPlayer {
     public static String getIndex(){
     	List<String> weightSet = new ArrayList<String>();	
     	try {
-			for (String line : Files.readAllLines(Paths.get("testWeights.txt"))) {
+			for (String line : Files.readAllLines(Paths.get("benchmark.txt"))) {
 				weightSet.add(line.trim());
 			}
 		} catch (IOException e) {
@@ -62,7 +63,50 @@ public class StudentPlayer extends HusPlayer {
 			e.printStackTrace();
 		}
     	
-    	int index = results.size() % 10;
+    	int index = results.size() % weightSet.size();
+    	if (index == 0){
+    		try{
+	    		String newIndividual = "";
+	    		for (int i = 0; i < 13; i ++){
+	    			int weight = 0;
+	    			if (Math.random() > 0.9){
+	    				weight = ThreadLocalRandom.current().nextInt(-8, 8 + 1);
+	    			}
+	    			else if (Math.random() > 0.7){
+	    				// Top individuals are (theoretically) the best ones
+	    				int ind = ThreadLocalRandom.current().nextInt(0, 5);
+	    				String individual = weightSet.get(ind);
+	    				String[] tokens = individual.split(" ");
+	    				weight = Integer.valueOf(tokens[i]);
+	    			}
+	    			else if (Math.random() > 0.5){
+	    				// Select from any individual
+	    				int ind = ThreadLocalRandom.current().nextInt(0, weightSet.size());
+	    				String individual = weightSet.get(ind);
+	    				String[] tokens = individual.split(" ");
+	    				// Change the value a bit
+	    				weight = (Integer.valueOf(tokens[i]) + ThreadLocalRandom.current().nextInt(-2, 2)) % 9;
+	    			}
+	    			else{
+	    				weight = 0;
+	    			}
+	    			
+	    			newIndividual += String.valueOf(weight) + " ";
+	    		}
+	
+	    		weightSet.add(newIndividual);
+	    		try {
+					Files.write(Paths.get("benchmark.txt"), weightSet);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+    		} catch(Exception e){
+	    		
+	    	}
+    	}
+    	
+    	
     	String[] tokens = weightSet.get(index).split(" ");
 		for (int i = 0; i < tokens.length; i++){
 			weights[i] = Integer.valueOf(tokens[i]);
