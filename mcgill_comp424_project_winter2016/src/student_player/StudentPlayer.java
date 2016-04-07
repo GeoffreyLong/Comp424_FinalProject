@@ -43,7 +43,7 @@ public class StudentPlayer extends HusPlayer {
     public static String getIndex(){
     	List<String> weightSet = new ArrayList<String>();	
     	try {
-			for (String line : Files.readAllLines(Paths.get("benchmark.txt"))) {
+			for (String line : Files.readAllLines(Paths.get("weightSet.txt"))) {
 				weightSet.add(line.trim());
 			}
 		} catch (IOException e) {
@@ -63,7 +63,7 @@ public class StudentPlayer extends HusPlayer {
 			e.printStackTrace();
 		}
     	
-    	int index = results.size() % weightSet.size();
+    	int index = (results.size() / 10) % weightSet.size();
     	if (index == 0){
     		try{
 	    		String newIndividual = "";
@@ -96,7 +96,7 @@ public class StudentPlayer extends HusPlayer {
 	
 	    		weightSet.add(newIndividual);
 	    		try {
-					Files.write(Paths.get("benchmark.txt"), weightSet);
+					Files.write(Paths.get("weightSet.txt"), weightSet);
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -138,60 +138,35 @@ public class StudentPlayer extends HusPlayer {
     	//		Apparently can check this by running move on copy of board state
     	//			HusBoardState has invalid move checkers
     	// Cannot use external libraries (must make all my own code)
-    	//		TODO check to see if tree libraries are acceptable 
     	//		All these: https://docs.oracle.com/javase/7/docs/api/overview-summary.html
     	// Make sure I document well
     	
-    	////////// GAMEPLAY NOTES //////////
-    	
-    	
-    	////////// INITIAL THOUGHTS //////////
-    	// Should have each gameplay type as a separate package
-    	// i.e. if I use minimax, should have a minimax package
-    	
-    	
-    	////////// CODE NOTES //////////    	
-    	// In order to change the faceoff, change the 51st line of autoplay.Autoplay
-    	// pits -> Each player has an array of pits
-    	//		The pits are indexed counter clockwise, starting from bottom left
-    	//		[32][31] ... [18][17]
-    	//  	[0]	[1]	 ... [15][16]
-    	// board_state.getLegalMoves() -> All of the moves that I can do
-    	// HusMove.getPit() -> will return the pit number of the move
-    	
-    	// Can do work on the cloned board state to check game tree
-    	//		I'm not sure if this is the most efficient way to go about things
-    	//		See how efficient it is vs another routine I come up with for furthering the tree
-    	
-    	///////////////////////////////////////////////////////////////////////
-        // Get the contents of the pits so we can use it to make decisions.
-        // int[][] pits = board_state.getPits();
-
-        // Use ``player_id`` and ``opponent_id`` to get my pits and opponent pits.
-        //int[] my_pits = pits[player_id];
-        //int[] op_pits = pits[opponent_id];
-
-        // Use code stored in ``mytools`` package.
-        //MyTools.getSomething();
-
-        // Get the legal moves for the current board state.
-    	//ArrayList<HusMove> moves = board_state.getLegalMoves();
-        //HusMove move = moves.get(0);
-        
-        // We can see the effects of a move like this...
-    	//HusBoardState cloned_board_state = (HusBoardState) board_state.clone();
-        //cloned_board_state.move(move);
-
-    	
+    	// Instantiate the weights according to turn number
+    	// if (board_state.getTurnPlayer == 0){
+    	// 		int[] weights = {};
+    	// }
+    	// else{
+    	//		int[] weights = {};
+    	// }
     	
         // Use executor to handle the timing
         ExecutorService executor = Executors.newSingleThreadExecutor();
-        // MiniMax mm = new MiniMax(board_state,mmTreeRoot);
+
+        // Instantiate the Alpha Beta Pruning method
+        // Pass in the current board state as well as the weighting used
         AlphaBeta mm = new AlphaBeta(board_state, weights);
+        
+        // Submit the instance to the executor
         Future<HusMove> future = executor.submit(mm);
+
+        // Initialize HusMove to null
+        // If the method finds no moves, a null move will be random
         HusMove move = null;
         
+
+        // Spawn a thread to perform the work 
         try {
+        	// This will allow the system to run for 1300 ms
         	move = future.get(1300, TimeUnit.MILLISECONDS);
 		} catch (InterruptedException e) {
 			System.out.println("interrupt");
@@ -202,23 +177,26 @@ public class StudentPlayer extends HusPlayer {
 			e.printStackTrace( new PrintWriter(writer,true ));
 			System.out.println("exeption stack is :\n"+writer.toString());
 		} catch (TimeoutException e) {
-			// System.out.println("Timeout");
+			// On a timeout, the thread will end up here
+			// This will throw an interrupt to the thread
 			future.cancel(true);
 		} finally {
 			
 		}
         
         
-        // Throw another cancel just in case
+        // Pass the thread another interrupt just in case
+        // This sets the isInterrupted flag on the thread
         future.cancel(true);
         
-        // Wait for back-propagation to complete, then get the best move
+        // Wait for the back-propagation to complete, then get the best move
         while(!future.isDone());
         move = mm.getBestMove();
         
         // Shut down the executor
         executor.shutdownNow();
         
+        // Return the chosen move
         return move;
     }
 }

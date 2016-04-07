@@ -68,7 +68,8 @@ public class BenchmarkPlayer extends HusPlayer {
     	// Change index every 10
     	// Has the added benefit of restarting where it left off
     	// 		in the event of a restart
-    	int index = (results.size() / 10) % weightSet.size();
+    	int index = results.size() % weightSet.size();
+
 		String[] tokens = weightSet.get(index).split(" ");
 		for (int i = 0; i < tokens.length; i++){
 			weights[i] = Integer.valueOf(tokens[i]);
@@ -77,11 +78,21 @@ public class BenchmarkPlayer extends HusPlayer {
 		
 		//TODO remove quick eval
 		/*
-		int[] totals = new int[10];
-		int[] firstWins = new int[10];
-		int[] secondWins = new int[10];
+		List<String> weightSet = new ArrayList<String>();	
+    	try {
+			for (String line : Files.readAllLines(Paths.get("weightSet.txt"))) {
+				weightSet.add(line.trim());
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
-		for (int i = 1095; i < 1389; i++){
+		int[] totals = new int[weightSet.size()];
+		int[] firstWins = new int[weightSet.size()];
+		int[] secondWins = new int[weightSet.size()];
+		
+		for (int i = 1631; i <= 1770; i++){
 			String result = results.get(i);
 			String[] tokens2 = result.split(",");
 			int p1 = Integer.parseInt(tokens2[1].replaceAll("[\\D]", ""));
@@ -97,11 +108,10 @@ public class BenchmarkPlayer extends HusPlayer {
 			}	
 		}
 		
-		for (int i = 0; i < 10; i++){
+		for (int i = 0; i < weightSet.size(); i++){
 			System.out.println(i + " " + firstWins[i] + " " + secondWins[i] + " " + totals[i]);
 		}
-    	*/
-		
+		*/
 		
 		return "Benchmark("+String.valueOf(index)+")";
     }

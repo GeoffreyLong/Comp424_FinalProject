@@ -43,20 +43,20 @@ public class AlphaBeta implements Callable<HusMove> {
 
 	@Override
 	public HusMove call() throws Exception {
-		// TODO Auto-generated method stub
 		int depth = 3;
 		
 		// Performs useless calculations when the tree isn't deep
 		// Not a really bad problem though?
 		while (true){
-			depth += 1;
-			// System.out.println(depth);
+			if (isInterrupted) break;
 
-			// Recloning will also be slow
-			// Would be best if we could just continue on from where we left off
-			// This "in-between" is a simple backpropagation of values
+			// Increase the depth of the search
+			depth += 1;
+
 			alphabeta(cloned_board_state, mmTreeRoot, depth, Float.MIN_VALUE, Float.MAX_VALUE, true);
 
+			// Find the best possible move based on the children
+			// Store  the best move in a class variable
 			float bestValue = Float.MIN_VALUE;
 			for (Node node : mmTreeRoot.children){
 				// In the event of a tie might want to look at the grandchildren of root
@@ -65,8 +65,6 @@ public class AlphaBeta implements Callable<HusMove> {
 					bestMove = node.move;
 				}
 			}
-			
-			if (isInterrupted) break;
 		}
 		return bestMove;
 	}
@@ -80,7 +78,6 @@ public class AlphaBeta implements Callable<HusMove> {
 
 		// If max depth reached or if thread was interrupted
 		if (depth == 0 || moves.size() == 0 || isInterrupted){
-			//leafCount++;
 			// If we are at a leaf or the max depth 
 			// (which is basically like a leaf for our purposes)
 			// Estimate the value of the node 
