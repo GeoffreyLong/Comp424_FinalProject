@@ -76,7 +76,7 @@ public class BenchmarkPlayer extends HusPlayer {
 		
 		
 		//TODO remove quick eval
-		
+		/*
 		int[] totals = new int[10];
 		int[] firstWins = new int[10];
 		int[] secondWins = new int[10];
@@ -100,7 +100,7 @@ public class BenchmarkPlayer extends HusPlayer {
 		for (int i = 0; i < 10; i++){
 			System.out.println(i + " " + firstWins[i] + " " + secondWins[i] + " " + totals[i]);
 		}
-    	
+    	*/
 		
 		
 		return "Benchmark("+String.valueOf(index)+")";

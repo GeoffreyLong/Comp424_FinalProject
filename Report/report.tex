@@ -52,14 +52,17 @@ Student \#260403840 \\
 
 \newpage
 \section{Introduction}
-Hus is a game that lends itself well to AI development. It is from a family of rather well studied Mancala games, although Hus itself is rather unstudied. There are several variations of Mancala, but they all share the basic principles. Specifically that the board has holes which are ordered into rows; the game is played with indistinguishable tokens (henceforth referred to as seeds); each player owns a fixed and equal number of holes on the board; a move involves taking the seeds out of a selected hole and placing them one-by-one in subsequent holes (this is often referred to as sowing); the sowing may or may not terminate with capture conditions which allow a given player to seize another's seeds; and the goal of the game is to capture the most (or all) of the seeds \cite{donkers2002programming}. In Hus, there are 4 rows of 8 holes a piece, and each player owns the 2 rows closest to them. Each player begins their turn by choosing a hole with more than one seed. If they cannot do this, they have lost the game. All of the seeds are taken from the hole and sowed one-by-one in a counter clockwise manner starting with the hole directly after the initially chosen hole. If the sowing ends on a previously occupied hole, then the seeds are taken. If the previously occupied hole is in an inner row, then the opponent's seeds on the same column can also be seized. If there are seeds to be sown, then the player continues as before.
+Hus is from a family of rather well studied games called the Mancala family. Nearly all of these Mancala variations share the same basic principles: the board has pits which are ordered into rows; the game is played with indistinguishable tokens (henceforth referred to as seeds); each player owns a fixed and equal number of pits on the board; a move involves taking the seeds out of a selected pit and placing them one-by-one in subsequent pits (this is often referred to as sowing); the sowing may or may not terminate with capture conditions, which allow a given player to seize another's seeds; and the goal of the game is to capture the most (or all) of the seeds \cite{donkers2002programming}. 
 
-There are several reasons why Hus is a good candidate for an AI agent. Since the problem has a discrete state space, the search will be over a finite set of different game states. The changes between states in this state space is deterministic. This means that for each player action, we know exactly what the outcome will be. We might not know the full effect of the move due to the execution time constraints, but we know the immediate effects and how this alters the game flow over a finite span. This lowers the complexity and ensures that we will know the exact state of the board given a set of moves. This allows us to plan more effectively and with more certainty. The static and observable nature of the environment affords us similar benefits. Since the information on the game is perfect, planning can be performed with greater certainty. 
+In Hus, there are 4 rows of 16 pits a piece, and each player owns the 2 rows closest to them. Each player begins their turn by choosing a pit with more than one seed. If they cannot do this, they have lost the game. All of the seeds are taken from the pit and sowed one-by-one in a counter clockwise manner starting with the pit directly after the initially chosen pit. If the sowing ends on a previously occupied pit, then the seeds are taken. If the previously occupied pit is in an inner row, then all the opponent's seeds on the same column can be seized and sown. If there are seeds to be sown, then the player continues as before. 
 
-The game rules themselves also help to make planning easier. There is a finite set of moves that can be applied at each turn, each with the same basic operator. Each player has the same simple moves and has the same simple goal, so it is easy to see the relationship between the players. The immediate cost of a player's action can be easily observed by counting the number of stones gained or lost. The simple rules, few operators, and observable cost all make it easier to derive a well rounded set of heuristics for estimating the quality of a move. The heuristics (discussed in Section \ref{sec:heuristics}) are really what drives the AI agent to the goal quickly. 
-% Therefore, the quality of a move can be determined rather easily within a finite frame of subsequent moves. 
+There are several reasons why Hus lends itself well to AI development. Since the problem has a discrete state space, the search will be over a finite set of game states. The changes between states in this state space is deterministic, meaning that for each player action the outcome is known. We might not know the full effect of the move due to the execution time and size constraints, but we know the immediate effects and how this alters the game flow over a finite span. This perfect information lowers the complexity and ensures that we will know the exact state of the board given a set of moves. This static and observable nature of the environment allows us to plan more effectively and with more certainty. 
+
+The game rules also help to make planning easier. There is a finite set of moves that can be applied at each turn, each with the same basic operator. Each player has the same simple moves and the same simple goal, so it is easy to see the relationship between the players. The immediate cost of a player's action can be easily observed by counting the number of stones gained or lost. The simple rules, few operators, and observable cost all make it easier to derive a well rounded set of heuristics for estimating the quality of a move. The heuristics (discussed in Section \ref{sec:heuristics}) are really what drives the AI agent to the goal quickly. 
 
 % donkers2002mancala: The fact that a single move can effect all pits can make it difficult to see even a few moves ahead
+
+%but Hus itself has remained rather obscure.
 
 % 	OTHER AI TERMS
 %		State: The number of seeds in each pit as well as player turn
@@ -67,20 +70,20 @@ The game rules themselves also help to make planning easier. There is a finite s
 %		Goal: To obtain more stones than opponent (specifically to capture so many that opponent cannot move)
 %		Cost: +1 for winning, 0 for ties, -1 for losing
 
-As can be seen, Hus is a good candidate for AI development. The remainder of this paper discusses an approach taken towards a suitable AI agent. 
+As can be seen, Hus is a good candidate for AI development. The remainder of this paper discusses common approaches for the Mancala family of games, an approach implemented for a suitable Hus AI agent, and the results from this agent. 
 
 
 \section{Background}
-A theoretical basis for the approach was derived by parsing articles on AI approaches in the Mancala family of games. Although no papers were found on Hus specifically, Mancala and several of its derivatives did have AI research. Since the Mancala games all have similar mechanics (described in Section \ref{sec:intro}), many of the approaches are extensible to Hus. Specifically, an algorithm that works well for Mancala can be expected to work for Hus as well. This extensibility is mostly due to the simple and shared game operators. In any Mancala variant, a player will take seeds and distribute them evenly amongst the subsequent holes. The effect of a given action is rather similar across the entire family of games. Also the branching factor, representation, goals, and states are also quite similar among the family. Since the state, operators, goal, and cost are similar along with the environment, we can expect similar algorithms to perform similarly. That being said, variants that have mechanics that more similar to Hus's offer better indications.
+\label{sec:Background}
+A theoretical basis for the approach was derived by parsing articles on AI approaches in the Mancala family of games. Although no papers were found on Hus specifically, Mancala and several of its derivatives had varying levels of AI research. Since the Mancala games all have similar mechanics (described in Section \ref{sec:intro}), many of the approaches are extensible to Hus. Specifically, an algorithm that works well for Mancala can be expected to work for Hus. This extensibility is due to similarities in the branching factor, representation, operators, goals, and possible states. Since the state, operators, goal, and cost are similar along with the environment, we can expect similar algorithms to perform similarly. That being said, variants that have mechanics that more similar to Hus's offer better performance indications.
 
-Amongst all the strategies employed, MiniMax variants were the most common. Specifically MiniMax with alpha-beta pruning which relies on an evaluation function consisting of a linear combination of weighted features. Minimax variants were used in nearly all of the papers read on Mancala games. 
+Amongst all the strategies employed, MiniMax variants were the most common. Minimax variants were used in nearly all of the papers read on Mancala games. % Specifically MiniMax with alpha-beta pruning relying on an evaluation function consisting of a linear combination of weighted features. 
 
 Abayomi et al. studied a series of supervised machine learning methods in "An Overview of Supervised Machine Learning Techniques in Evolving Mancala Game Player". They focused on developing AI for the variant Awale. The majority of the methods were employed using minimax combined with some sort of machine learning. The machine learning was used to classify moves into two classes, one which helped the player and another that helped the opponent. The move was chosen which was the farthest away from the separating hyperplane. The classification was learned several ways including case-based reasoning using a perceptron; features using linear discriminant analysis; and linear discriminant functions learned with a perceptron. They also employed evolutionary computation to learn the evaluation function using both co-evolution and genetic algorithms to mixed success \cite{abayomi2013overview}. In a similar paper Randle et al. studied unsupervised methods in "An Overview of Unsupervised Machine Learning Techniques to Evolve Mancala Game Player". They initially attempted retrograde analysis, which takes a bottom up approach to scoring, but this was deemed too expensive. Then, similar to Source \cite{abayomi2013overview}, they used learning to create a binary classifier separating good and bad strategies. Again, the move was chosen to maximize the distance to the hyperplane. The machine learning used was the Aggregate Mahalanobis Distance Function (ADMF), and it was used with minimax with a depth of 6. This method appeared to outperform the supervised methods seen earlier \cite{randle2013overview}. In "Searching \& Game Playing: An Artificial Intelligence Approach to Mancala", Gifford et al. were able to achieve a 100\% success rate by varying weights on a set of parameters used for an alpha beta minimax evaluation function. They found that small changes in certain weighted heuristics can make a big impact on the outcome of the search \cite{gifford2008searching}. Other authors chose to use iterative deepening with memory enhanced test driver (MTD(f)), which is a variant of alpha-beta minimax which searches using only zero-window windows. MTD(f) is often considered one of the more speed optimized versions of minimax. It was used for BAO by Donkers et al. in "Programming Bao" \cite{donkers2002programming}. It was also used by Irving et al. to solve Kalah(6,5) in the paper "Solving Kalah" \cite{irving2000solving}. As is shown, minimax and its variants work well for Mancala style games. 
 % kalah(6,5), which has a game tree complexity of $3*10^{22}$,
 
 
-In addition to the overall strategy, the papers also showed possible evaluation functions and heuristics. Although a majority of the features are not directly applicable to Hus, many could be adapted to optimize a Hus evaluation function. %TODO specifics %TODO cite the sources that use a weighted evaluation function
-A list of relevant and possibly adaptable features is shown below. Note that some of the features have been altered slightly to align more closely with Hus's objectives:
+In addition to the overall strategy, the papers also showed possible evaluation functions and heuristics. Although a majority of the features are not directly applicable to Hus, many could be adapted to optimize a Hus evaluation function. A subset of relevant and possibly adaptable features is shown below. Note that some of the features have been altered slightly to align more closely with Hus's objectives:
 
 \begin{itemize}
 \item The number of pits that we / opponent can use to capture seeds \cite{abayomi2013overview}
@@ -88,48 +91,76 @@ A list of relevant and possibly adaptable features is shown below. Note that som
 \item The current score of our player / opponent \cite{abayomi2013overview}
 \item The number of empty pits on our / opponents side \cite{abayomi2013overview}
 
-\item number of holes in the inner row that are filled \cite{donkers2002programming}
+\item number of pits in the inner row that are filled \cite{donkers2002programming}
 \item total number of counters in the back row \cite{donkers2002programming}
 
 \item How far ahead of my opponent I am ("good heuristic") \cite{gifford2008searching}
 \item How close I am / opponent is to winning (> half) \cite{gifford2008searching}
 \end{itemize}
 
-As with any heuristic, these features provide insight to the game status. Many of the features only weakly classify the moves as beneficial/detrimental however, when combined into a linear combination, they can form a rather strong classification of move quality. Note that the list above is is just a subset of the heuristics found. Many of the other heuristics can be used to draft heuristics for Hus. A further description of heuristics can be found in \ref{sec:heuristics}.
+As with any heuristic, these features provide insight to the game status. Many of the features only weakly classify the moves as beneficial/detrimental however, when appropriately applied using a linear combination, they can form a rather strong classification of move quality. A further description of heuristics can be found in \ref{sec:heuristics}.
 
 
 \section{Algorithm}
-As was stated in Section \ref{sec:background}, one of the more common approaches was MiniMax with Alpha-Beta pruning. This algorithm was a logical choice for my AI agent because it is proven for this problem, it can be tailored using an evaluation function, and it is rather easy to implement. The most difficult part of the problem would be in crafting the evaluation function.
+As was stated in Section \ref{sec:background}, one of the more common approaches was MiniMax with Alpha-Beta pruning. This algorithm was a logical choice for a Hus AI agent because it is proven for similar problems, it can be tailored using an evaluation function, and it is rather easy to implement. 
 
 \subsection{Ensuring Timing}
 A big component of this project is adherence to the strict timing guidelines. As was stated in the project specification document, the agents have 30 seconds for the first move, and 2 seconds for each subsequent move. Although one could theoretically perform timing analysis on their program to ascertain an average depth of their game tree or number of iterations on their algorithm, this method is ineffective. The issue is that different environments and even different games could cause drastic changes in the timing. If, for instance, the branching factor is much larger for a given instance, the agent could run out of time before the tree is fully searched. On the other hand, if the branching factor is small, then the agent could end up returning a value prematurely, when they could have searched farther down the game tree. An effective timer would perform the following (in order of priority): stop before the time constraint; stop as close to the time constraint as possible; return the best possible value; and don't waste CPU cycles polling the timer.
 
-%TODO could put the next sections in a subsection, or after the minimax explanation... It references the minimax pretty heavily, so...
-Although there are several different ways of achieving effective timing constraints, most of the ones theorized involved spawning threads. The pattern would be for the main thread to spawn a worker thread to perform all the execution. When the time is approaching the end, the main thread sends a signal to cancel the worker thread, and a value is returned. Of all the patterns found, Java's executor service was found to be the best. This is due to its thread safety, its ability to shut down immediately when the command is given, and its efficiency in not wasting CPU cycles. The most time-safe method would be for the system to poll a value from the thread's class variable after the thread has stopped executing. This class variable would store the current best move as found by the minimax algorithm. The thread would have to keep updating this class variable to ensure that this value is actually corresponds to the best move. The most natural approach here would be to use iterative deepening. At the end of each iteration the value would be updated. 
+Although there are several different ways of achieving effective timing constraints, most of the approaches theorized involved spawning a worker thread. When the time is approaching the end, the main thread sends a signal to cancel the worker thread, and a value is returned. Of all the patterns found, Java's executor service was found to be the best. This is due to its thread safety, its ability to shut down immediately when the command is given, and its efficiency in not wasting CPU cycles. 
 
-An alternative method that was not employed would be to cancel the thread early, saving the game tree. Then, the system would use the remaining time to back-propagate the minimax values of the tree in order to find the most optimal move. If the algorithm proceeds to the deepest full level, this method will save execution time since the algorithm would not have to employ iterative deepening, so the back-propagation would only have to occur once. 
+The safest method would be for the system interrupt signal to cancel the thread immediately. After cancellation, the main thread would poll a class variable holding the current best move as found by the minimax algorithm. The most natural approach here would be to use iterative deepening and update the value at the end of each iteration. This would ensure that this value is actually corresponds to the best move. An alternative method would be to cancel the thread early and allow the system to use the remaining time to back-propagate the minimax values. 
+% If the algorithm proceeds to the deepest full level, this method will save execution time since the algorithm would not have to employ iterative deepening, so the back-propagation would only have to occur once. 
 
-Due to the branching factor, the final level reached would take the longest to compute. If we use either method described before, much of this deepest level, and therefore much of the computation time, would be wasted. This is why an alternative approach was considered where even the leaves of the unbalanced tree could be back-propagated. The risk of using an unbalanced tree would be the skewing of parent values. If a parent only has one child, then the parent will take this value. However if the parent is full, or close to full, then the probability of the back-propagated value being correct, or close to correct, increases. It also increases for a given node if the branching factor is high enough, and the node is one or two generations up the tree before encountering an imbalance. Since all levels except the last are expected to be filled, we only require that the leaves have a full set of siblings in order for their values to back-propagate. Although, the imbalance may skew the results slightly, it is not expected to have a major impact, especially since the values of nodes are estimates themselves. % IS THIS TRUE?? If the branching factor is high enough, then even a slight imbalace one or two generations up the tree would not be expected to skew the results too much. %IS THIS TRUE?? I think so, since the upper levels are most certainly filled... %Since this is the case, we require the parents of leaves to have a full set of children and at least a half full set of siblings in order to back-propagate. % Could probably get away with just the leaves being full siblings %%% Using an unbalanced tree might be questionable though, since the parent nodes would also be unbalanced, possibly skewing results. Hopefully, the branching factor is such that the skewing is not too detrimental. 
+%Due to the branching factor, the final level reached would take the longest to compute. If we use either method described before, much of this deepest level, and therefore much of the computation time, would be wasted. This is why an alternative approach was considered where even the leaves of the unbalanced tree could be back-propagated. The risk of using an unbalanced tree would be the skewing of parent values. If a parent only has one child, then the parent will take this value. However if the parent is full, or close to full, then the probability of the back-propagated value being correct, or close to correct, increases. It also increases for a given node if the branching factor is high enough, and the node is one or two generations up the tree before encountering an imbalance. Since all levels except the last are expected to be filled, we only require that the leaves have a full set of siblings in order for their values to back-propagate. Although, the imbalance may skew the results slightly, it is not expected to have a major impact, especially since the values of nodes are estimates themselves. % IS THIS TRUE?? If the branching factor is high enough, then even a slight imbalace one or two generations up the tree would not be expected to skew the results too much. %IS THIS TRUE?? I think so, since the upper levels are most certainly filled... %Since this is the case, we require the parents of leaves to have a full set of children and at least a half full set of siblings in order to back-propagate. % Could probably get away with just the leaves being full siblings %%% Using an unbalanced tree might be questionable though, since the parent nodes would also be unbalanced, possibly skewing results. Hopefully, the branching factor is such that the skewing is not too detrimental. 
 % Could have a metric of percentage of children filled for grandparents. 
-In either case, there is still the risk of execution time variation in the variable back-propagation. This variation is expected to be rather minimal though, especially if we include unbalanced trees.
+% In either case, there is still the risk of execution time variation in the variable back-propagation. This variation is expected to be rather minimal though, especially if we include unbalanced trees.
 
 %TODO mention that the executor was initially conducted under the assumption that the cancellation would return immediately. This would cancel execution on the thread, this assumption proved false though.
 %TODO ACTUALLY, the leaf values will need to be calculated, this will be the expensive part, so... might need iterative deepening in either case to avoid. But I guess even in iterative deepening you calculate all the leaf values, so I guess ID would be more expensive
 
 \subsection{MiniMax}
 % Description of the MiniMax as well as any optimizations I chose
-% Not really done... so...
 As was stated in Section \ref{sec:strategy}, a vast majority of the algorithms chose minimax or an optimized version of it. The adversarial nature of the algorithm lends itself well to minimax. Given the wealth of research behind this algorithm, minimax was the obvious choice for the base of the AI player. In order to implement minimax, a Node class was created to store the value of the node, the move the node corresponds to, and the parent and children of the node. % POSSIBLY game state if the game doesn't take too much space... This would save a lot of recomputation time...
 The minimax itself works like any other minimax algorithm. The game tree is walked in a breadth first manner, the values of the leaves are estimated using an evaluation function (discussed in Section \ref{sec:evalFn}), and the minimum or maximum values are back propagated according to whether the parent node is a max or a min node. In order to increase the depth of the search, several optimizations were made.
 
 \subsubsection{Optimizations}
-\paragraph{Alpha-Beta pruning}:
-
+\paragraph{Alpha-Beta pruning}: The most obvious optimization was to implement alpha beta pruning. This algorithm prunes along paths that are unlikely to be taken by the opponent. Pruning the paths allows the agent to travel deeper down the game tree by reducing the branching factor. Given that minimax was already implemented, alpha-beta pruning was easy to incorporate. 
 
 
 \subsection{Evaluation Function}
 \label{sec:evalFn}
-% Talk about the heuristics used
+After attempting a few different approaches. It became clear that the best course of action was alpha-beta pruning with an optimized evaluation function. The heuristics were inspired by and adapted from various resources discussed in Section \ref{sec:Background}. The heuristics that were chosen give some insight into the state of the game. The heuristics used in the algorithm are as follows:
+
+%TODO perhaps say a bit more about why they were chosen. I can't really think of too much beyond they give insight into the state of the game.
+
+\begin{itemize}
+\item Seed difference between player and opponent
+\item Seed difference between opponent and player
+\item Simple estimate of pits that the opponent could capture in one turn
+\item Simple estimate of pits that the player could capture in one turn
+\item More complex estimate of the pits that the opponent could capture in one turn
+\item More complex estimate of the pits that the player could capture in one turn
+\item Number of player pits with more than 12 seeds
+\item Number of opponent pits with more than 12 seeds
+\item Number of player pits with exactly 1 seed
+\item Number of opponent pits with exactly 1 seed
+\item Number of player pits with exactly 0 seeds
+\item Number of opponent pits with exactly 0 seeds
+\item Number of moves that the player can make
+\end{itemize}
+
+These 13 heuristics were weighted between -1 and 1 at increments of 1/8. This means that the weighting exists as an integer array of size 13 with values between -8 and 8. Constraining the values was an attempt to simplify the weighting a bit and to reduce the number of possible configurations it can take. This doesn't constrain it all that much though, since there are still around $10^15$ different weightings to choose from. 
+
+\subsubsection{Evolutionary Computation}
+\ref{sec:evolution}
+In order to derive an optimal weighting scheme, an evolutionary algorithm was developed. In an evolutionary algorithm, you have a population of individuals which are allowed to evolve, guided by environmental pressures, towards an optimum. These individuals are changed overtime using mutation and crossover operations. Crossover operations are where two individuals swap genetic information, mutation operators are where one or more alleles of an individual change at random. 
+
+In this particular implementation, the population was comprised of 10 individuals, where each individual was a weighting scheme. These individuals each had 13 loci (the weights), where each each allele of each loci (the value of each weight) could take one of the 17 possible values from -8 to +8. Each individual was then allowed to face off, round robin style, against every other individual 10 times. At the end of the 100 trial generation, the best performing individual, the one which won the most games, was allowed to persist to the next generation. All of the other individuals were subject to mutation and crossover. For each loci of the individual, there was a 50\% chance that the allele would be averaged with the allele of the best performing individual; a 20\% chance that the allele would be set to 0; and a 10\% chance that the allele would be set to a random value. 
+
+It was only after the evolutionary methods were developed that I realized the method would take far too long to reach an optimum. Evolutionary computation works best when it is allowed to iterate over several thousands of trials. This was impossible, however, since each turn takes about four seconds (two for each player), and each game takes around 50 turns. This would be 200 seconds per game, and therefore 6 hours between each generation of the evolution. Even if the computer ran constantly, there was not enough time to reach a solution. In order to speed up the trials, random generation of individuals was removed. Instead, the initial individual configurations were seeded according to what was believed to be the optimal weighting scheme. This had the effect of starting the population closer to the optimum. In theory, this would reduce the time it takes for the algorithm to reach an optimum, but it would also increase the probability that the population got stuck in a local optimum. The recombination and mutation was also handled more or less manually, so the evolution was less stochastic and more or less guided. The outcomes of the trials were viewed and the individuals who won the most games were allowed to persist to the next round. The individuals who fared poorly were removed, and new individuals were recombined from the best performing individuals.
+
+
 
 %%%%%%%%%%%%%%%%%%%% POSSIBLE HEURISTICS %%%%%%%%%%%%%%%%%%%%
 % NOTES
@@ -137,29 +168,55 @@ The minimax itself works like any other minimax algorithm. The game tree is walk
 %	We want to check the board state after the move, not the move itself
 % 	Remember that for evaluation fns we want the evaluation to be the same under monotonic transformation
 %		Want to retain the order of the numbers
-% HEURISTICS
-%	Number of stones of opponent
-%	Number of stones of self
-%	Number of possible moves of opponent
-%	Number of possible moves of self
-%	Number of capturable stones
-
-% MOVE HEURISTICS: probs don't want, but good to think about
-%	Ones that capture the largest number of stones
-%	Those that repeat for the longest (without going forever)
-%	Those that shorten the game (bring towards end faster)
-%		This might be hard to calculate
 
 
 \subsection{Alternate Approaches and Issues Encountered}
-% The whole thread issue
+% The wpit thread issue
+\subsubsection{Iterative Minimax}
+One approach that was attempted was a sort of iterative minimax. This algorithm used breadth first search to iterate through the game tree simply adding nodes to the tree when a new node was encountered. When the master thread sent an interrupt signal, the BFS would shift into node evaluation and back propagation. 
+
+The use of the thread timer made the switch from tree search to node evaluation very explicit. When the interrupt was received, the current parent node would finish adding its children to the tree, then break the loop. The queue of unexplored nodes would be used in the next stage as the leaf nodes. Due to the nature of breadth first search, every leaf node would have a full set of siblings. This would ensure that the tree would not be too imbalanced for the evaluation phase.
+
+The evaluation phase would work off a copy of the BFS queue in reverse. This means that it would evaluate and back propagate the most recently added children (the deepest children) first. At each iteration of the evaluation phase, the next node in the queue would be polled. If the node was a leaf node, the value of the node would be calculated. The value of the node was then compared to that of its parent. If the parent was a max node, and the child was larger, the parent took the child's value. If the parent was a min node, and the child was smaller, the parent also took the child's value. The parent was then added to the queue to be evaluated. To avoid adding multiple parents in a row, the end of the queue would be checked to see if the parent was already placed there. Essentially, the values would be passed back in reverse-BFS order. 
+
+Upon termination, the algorithm would pass back the root node's largest child as the move as well as the queue. The root node was updated to be the chosen child. On the next turn, the persistent root node and queue would be reused. The root node would be updated to be its child that reflected the current state of the game (the node that the opponent chose). The unused portions of the tree would be pruned, and the usable portion of the queue would be used to resume BFS. 
+
+The goal of this implementation was to create a faster AI implementation by reducing the number of node evaluations and by resuming off of previous progress. Unfortunately, after the BFS and back-propagation were implemented it became clear that this method would use too much memory. This is because the board state was being saved to the leaf nodes in order to quickly evaluate them. Saving the board state on a few hundred thousand nodes quickly got out of hand. Attempts were made to reduce the memory consumption and force garbage collection, however, these reduced the efficacy of the method to the point where minimax with alpha beta pruning was clearly superior. 
+
+
+\subsubsection{Game Databases}
+Random walks of the tree were also considered. The goal was to develop a rather large database of opening moves. This would be compiled beforehand and would be saved in a file. On each line, this file would contain 64 bytes, each byte corresponding to the number of pits in the given pit index. The end of the line would a be a 4 byte float corresponding to the probability that choosing the move will lead to a win. These probabilities would be amassed via random walks to game completion. The probabilities would be back-propagated to the top nodes, each value saved along the way. 
+
+During the first move, the agent would read from this file and instantiate the data structures. At each move, the current pit configuration would be compared against this file to see if it exists. The issue in this approach is that only a very small subset of the nodes could be added to this. Given that we only have 10 mb, including source files, there would only be room to store the first 3 levels from the initial play. By the forth level, the number of nodes reaches 207443, and by the fifth 3439088. The storage would not yield much of an advantage and would likely be expensive in terms of data fetching and comparisons. Similar problems were assumed for end game databases. 
+
 
 \section{Testing}
+Tested was mainly conducted though system outputs and autoplay matches. System outputs and print statements were useful in developing new algorithms. These were mainly used to show branching factors, number of evaluations, sizings, and intermediate outputs. %TODO more on this if possible... maybe show average depth of AB vs Minimax
+
+More telling than intermediate outputs were the autoplay matches. These were used as ground truth of how the developed players were performing. Facing off against the random player was initially the preferred method of testing, however, the players quickly neared 100\% success against the random player. After this, the players were pitted head to head. As was mentioned before in Section \ref{sec:evolution}, the evaluation function was derived from the round robin performance of differently weighted players. Unfortunately, since the random player didn't provide much guidance, there was no real benchmark by which to evaluate different players. In order to reliably calculate the performance of different weightings, the "benchmark" player was created. This player had several different weightings which were used. The new player would perform 10 matches against each of these players. 
+
+%TODO need 5 of these
+\begin{itemize}
+\item \textbf{Player One}: This was a simple, but effective, player. It relied solely on the metric of \texttt{# player seeds - # opponent seeds}. This gave an effective measure of the game state, since the game ends when the other player can no longer make a move.
+\item \textbf{Player Two}: 
+\end{itemize}
+
 
 \section{Results}
+% Discuss who was best against the benchmark, why they were the best, etc.
+
 
 \section{Conclusions}
 
+
+
+
+% BRANCHING OFF INITIAL STATE
+%	Level1: 24
+%	Level2: 576
+%	Level3: 11040
+%	Level4: 207443
+%	Level5: 3439088
 
 %TODO READ
 % http://cgi.cs.mcgill.ca/~sspenc8/cgi-bin/zedtech.cgi/static/documents/stuart-spence-omweso-report.pdf
@@ -182,6 +239,67 @@ The minimax itself works like any other minimax algorithm. The game tree is walk
 % STORAGE SIZES: To see the maximum size of tree I could store in memory
 %	Space to store the game board
 %	Space to store a node sans game board
+
+
+
+%%%%%%%%%% Benchmarks %%%%%%%%%%
+% Set 1: 895-1151
+%		8 0 0 0 0 0 0 0 0 0 0 0 0
+%		8 -8 0 0 0 0 0 0 0 0 0 0 0
+%		4 -4 2 -2 3 -3 -2 -2 2 -2 -4 -4 0
+%		8 0 2 0 2 0 0 0 0 0 0 0 0
+%		8 -2 0 -7 -4 -7 6 -2 0 -4 0 -4 0
+%		-6 3 1 1 -3 4 1 5 6 7 3 0 -2
+%		8 0 6 1 3 6 0 5 -3 7 -7 -7 8
+%		-1 4 1 5 5 0 -6 1 -4 1 0 -6 0
+%		1 3 0 -8 -1 3 4 4 0 -2 -7 -4 5
+%		5 -6 0 -4 -5 -6 5 5 2 0 -3 5 -3
+% Set 2: 1151-1436
+%		8 0 0 0 0 0 0 0 0 0 0 0 0
+%		8 0 4 0 4 0 4 0 4 0 4 0 4
+%		8 0 1 0 1 0 1 0 1 0 1 0 1
+%		8 0 2 0 2 0 0 0 0 0 0 0 0
+%		8 0 0 -3 0 0 0 0 0 0 0 0 0
+%		8 0 0 3 -3 0 0 0 0 0 0 0 0
+%		8 0 6 1 3 6 0 5 -3 7 -7 -7 8
+%		0 -8 0 0 0 0 0 0 0 0 0 0 0
+%		8 0 0 0 0 0 0 0 2 -2 2 -2 0
+%		8 0 8 0 8 0 8 0 8 0 8 0 0
+% 	results(index, starting wins, second wins, total games) played against 0
+%		0 116 72 324	(RETAIN)
+%		1 7 11 30		(MUTATE Opposite of 7's ratio)
+%		2 2 3 30		(REMOVE)
+%		3 0 13 30		(RETAIN Won most games second)
+%		4 14 1 29 		(MUTATE Won most games started)
+%		5 15 4 31		(RETAIN Won most games started)
+%		6 1 5 30		(REMOVE)
+%		7 11 7 30		(MUTATE Good ratio of wins)
+%		8 0 1 29		(REMOVE)
+%		9 10 1 25		(MUTATE Decent when starting)
+% Set 3: 1448-1562 (Only evalued to 1548)
+%		8 0 0 0 0 0 0 0 0 0 0 0 0
+%		8 0 4 0 4 0 4 0 4 0 4 0 4
+%		8 0 4 0 4 0 0 0 0 0 0 0 0
+%		8 0 2 0 2 0 0 0 0 0 0 0 0
+%		8 0 2 -3 2 0 0 0 0 0 0 0 0
+%		8 0 0 3 -3 0 0 0 0 0 0 0 0
+%		8 0 0 0 0 0 0 2 -2 -4 -3 3 0
+%		2 -8 1 -2 1 0 0 0 0 0 0 0 0
+%		4 -4 0 0 0 0 0 0 0 0 2 0 2
+%		8 0 8 -3 8 0 8 0 8 0 8 0 0
+% 	results(index, starting wins, second wins, total games) Round robin
+%		0 5 5 20	(MUTATE)
+%		1 10 4 20	(RETAIN best performing)
+%		2 5 5 20	(MUTATE)
+%		3 7 4 20	(RETAIN over 50% wins)
+%		4 5 5 20	(MUTATE)
+%		5 6 4 20	(MUTATE)
+%		6 5 6 20	(RETAIN best second player)
+%		7 6 2 20	(REMOVE)
+%		8 5 3 20	(REMOVE)
+%		9 6 2 20	(REMOVE)
+% Set 4: 1569-
+
 
 
 %%%%%%%%%%%%%%%%%%%% METRICS %%%%%%%%%%%%%%%%%%%%
@@ -224,67 +342,12 @@ The minimax itself works like any other minimax algorithm. The game tree is walk
 %		About 5 for intial moves
 %		Increases to around 8
 %		Very end can get to the 100s of thousands (though probably not going that deep, just relic of while + shallow tree)
-% 	Games
-%		177,RandomHusPlayer,260403840,1,260403840,10,game00177.log,
-%		178,260403840,RandomHusPlayer,0,260403840,25,game00178.log,
-%		179,RandomHusPlayer,260403840,1,260403840,10,game00179.log,
-%		180,260403840,RandomHusPlayer,0,260403840,33,game00180.log,
-%		181,RandomHusPlayer,260403840,1,260403840,15,game00181.log,
-%		182,260403840,RandomHusPlayer,0,260403840,11,game00182.log,
-%		183,RandomHusPlayer,260403840,1,260403840,16,game00183.log,
-%		184,260403840,RandomHusPlayer,0,260403840,15,game00184.log,
-%		185,RandomHusPlayer,260403840,1,260403840,17,game00185.log,
-%		186,260403840,RandomHusPlayer,0,260403840,26,game00186.log,
-%		187,RandomHusPlayer,260403840,1,260403840,13,game00187.log,
-%		188,260403840,RandomHusPlayer,0,260403840,18,game00188.log,
-%		189,RandomHusPlayer,260403840,1,260403840,9,game00189.log,
-%		190,260403840,RandomHusPlayer,0,260403840,12,game00190.log,
-%		191,RandomHusPlayer,260403840,1,260403840,16,game00191.log,
-%		192,260403840,RandomHusPlayer,0,260403840,10,game00192.log,
-%		193,RandomHusPlayer,260403840,1,260403840,20,game00193.log,
-%		194,260403840,RandomHusPlayer,0,260403840,19,game00194.log,
-%		195,RandomHusPlayer,260403840,1,260403840,10,game00195.log,
-%		196,260403840,RandomHusPlayer,0,260403840,54,game00196.log,
-%		198,260403840,RandomHusPlayer,0,260403840,14,game00198.log,
-%		199,260403840,RandomHusPlayer,0,260403840,26,game00199.log,
-%		200,260403840,RandomHusPlayer,0,260403840,15,game00200.log,
-%		201,RandomHusPlayer,260403840,1,260403840,10,game00201.log,
-%		202,260403840,RandomHusPlayer,0,260403840,19,game00202.log,
-%		203,RandomHusPlayer,260403840,1,260403840,15,game00203.log,
-%		204,260403840,RandomHusPlayer,0,260403840,16,game00204.log,
-%		205,RandomHusPlayer,260403840,1,260403840,8,game00205.log,
-%		206,260403840,RandomHusPlayer,0,260403840,26,game00206.log,
-%		207,RandomHusPlayer,260403840,1,260403840,25,game00207.log,
-%		208,260403840,RandomHusPlayer,0,260403840,31,game00208.log,
-%		209,RandomHusPlayer,260403840,1,260403840,20,game00209.log,
-%		210,260403840,RandomHusPlayer,0,260403840,15,game00210.log,
-%		211,RandomHusPlayer,260403840,1,260403840,23,game00211.log,
-%		212,260403840,RandomHusPlayer,0,260403840,17,game00212.log,
-%		213,RandomHusPlayer,260403840,1,260403840,25,game00213.log,
-%		214,260403840,RandomHusPlayer,0,260403840,25,game00214.log,
-%		215,RandomHusPlayer,260403840,1,260403840,11,game00215.log,
-%		216,260403840,RandomHusPlayer,0,260403840,20,game00216.log,
-%		217,RandomHusPlayer,260403840,1,260403840,13,game00217.log,
-%		218,260403840,RandomHusPlayer,0,260403840,14,game00218.log,
-%		219,RandomHusPlayer,260403840,1,260403840,16,game00219.log,
-%		220,260403840,RandomHusPlayer,0,260403840,18,game00220.log,
-%		221,RandomHusPlayer,260403840,1,260403840,8,game00221.log,
-%		222,260403840,RandomHusPlayer,0,260403840,17,game00222.log,
-%		223,RandomHusPlayer,260403840,1,260403840,7,game00223.log,
-%		224,260403840,RandomHusPlayer,0,260403840,21,game00224.log,
-%		225,RandomHusPlayer,260403840,1,260403840,79,game00225.log,
-%		226,260403840,RandomHusPlayer,0,260403840,42,game00226.log,
-%		227,RandomHusPlayer,260403840,1,260403840,25,game00227.log,
+% 	Games: See 177-234 and 380-442. Won all but one of these
 %		228,260403840,RandomHusPlayer,1,RandomHusPlayer,60,game00228.log,
-%		230,260403840,RandomHusPlayer,0,260403840,19,game00230.log,
-%		231,RandomHusPlayer,260403840,1,260403840,19,game00231.log,
-%		232,260403840,RandomHusPlayer,0,260403840,22,game00232.log,
-%		229,260403840,RandomHusPlayer,0,260403840,113,game00229.log,
-%		233,RandomHusPlayer,260403840,1,260403840,28,game00233.log,
-%		234,260403840,RandomHusPlayer,0,260403840,12,game00234.log,
 % ITERATION TWO: alpha beta with simple
-%	This is far more prone to timing out... had to reduce from 1800 to 1500 ms
-
+%	This is far more prone to timing out... Not sure if the thread kill is less than Minimax, currently at 1250
+%	100% win against random... see log 267-377
+%	444-543, AlphaBetaSimple beats MiniMaxSimple 100% of the times... both same metric though, so rather expected
 
 
 
@@ -316,23 +379,23 @@ The minimax itself works like any other minimax algorithm. The game tree is walk
 %%%%%%%%%%%%%%%%%%%% EXTERNAL NOTES %%%%%%%%%%%%%%%%%%%%
 %%%%% http://mancala.wikia.com/wiki/Hus %%%%%
 %%% RULES %%%
-% GAME START: At the beginning all the holes in the back row and those in the right half of the front row of each player contain two stones (gomate; literally: "cows"). The other holes are empty. %TODO is this true of our version?
+% GAME START: At the beginning all the pits in the back row and those in the right half of the front row of each player contain two stones (gomate; literally: "cows"). The other pits are empty. %TODO is this true of our version?
 % WHILE(true)
 %	IF opponent.cantMakeMove THEN WIN
 %	IF self.cantMakeMove THEN LOSE
 %	
-%	Choose hole containing 2 or more stones
+%	Choose pit containing 2 or more stones
 %	WHILE (true)
-%		Sow stones one at a time placing one in each subsequent hole going counter clockwise
-% 		IF the last stone is dropped in an empty hole THEN break (the turn ends)
+%		Sow stones one at a time placing one in each subsequent pit going counter clockwise
+% 		IF the last stone is dropped in an empty pit THEN break (the turn ends)
 % 		ELSE
-%			IF the end hole is occupied, and is in the inner row, and the opponents inner hole immediately opposite is occupied
-%				THEN the stones of the opponent's opposite two holes are captured, continue (repeat while with new stones)
-%			ELSE Pick up the stones from end hole, continue (repeat while with new stones) (called relay sowing)
-% cantMakeMove: all holes are empty or contain singletons
+%			IF the end pit is occupied, and is in the inner row, and the opponents inner pit immediately opposite is occupied
+%				THEN the stones of the opponent's opposite two pits are captured, continue (repeat while with new stones)
+%			ELSE Pick up the stones from end pit, continue (repeat while with new stones) (called relay sowing)
+% cantMakeMove: all pits are empty or contain singletons
 %
 %%% STRATEGY %%%
-% A narrow-width game (such as an 8-hole wide game) gives too much advantage to the starting player who may devastate the opponent's front and back rows.(...) A 12-hole gaming board is minimal for adult play which does not lead to this early imbalance. A 16-hole wide game should be even better.
+% A narrow-width game (such as an 8-pit wide game) gives too much advantage to the starting player who may devastate the opponent's front and back rows.(...) A 12-pit gaming board is minimal for adult play which does not lead to this early imbalance. A 16-pit wide game should be even better.
 % At an early stage of the game, there are often large concentrations of stones grouped in the front holes of both players. These (...) are vulnerable to quick capture, and players usually switch temporarily from attack to defence, for a turn or two, so as to transfer stones into other less vulnerable holes.
 % Stones in back-row holes are temporarily safe from capture when protected by an empty front hole.
 % The dynamics of the game [makes it sometimes] necessary to transfer stones to the front-row for a fresh round of attacks.
