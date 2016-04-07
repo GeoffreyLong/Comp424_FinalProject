@@ -20,52 +20,92 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import autoplay.Autoplay;
 import student_player.mytools.MyTools;
 
 /** A Hus player submitted by a student. */
-public class EvolvingPlayerTwo extends HusPlayer {
+public class BenchmarkPlayer extends HusPlayer {
 	private Node mmTreeRoot = new Node(null, Float.MIN_VALUE, null, true);
 	private float avgLeaf = 0;
 	private float avgCount = 0;
 	private int count = 0;
 	private static int[] weights = new int[13];
 	static Random rand;
-	private static final int start = 749;
+	private static final int start = 749;		
 	
     /** You must modify this constructor to return your student number.
      * This is important, because this is what the code that runs the
      * competition uses to associate you with your agent.
      * The constructor should do nothing else. 
      * @throws IOException */
-    public EvolvingPlayerTwo() throws IOException {     	
-    	super(getWeights()); 
-    }
-    
-    // The weights can be from -8 to 8
-    public static String getWeights() throws IOException{
-    	List<String> results = new ArrayList<String>();
-    	List<String> evolution = new ArrayList<String>();	
-    	for (String line : Files.readAllLines(Paths.get("logs/outcomes.txt"))) {
-        	results.add(line.trim());
-        }
-    	for (String line : Files.readAllLines(Paths.get("evolve.txt"))) {
-        	evolution.add(line.trim());
-        }
+    public BenchmarkPlayer() throws IOException {     	
+	super(getIndex()); 
     	
-    	// This will be all the evolution logic
-		// Do rounds of 10 each, then mutate and choose a new player
-		int index = (results.size() - start) % 10;
-		
-		String[] tokens = evolution.get(index).split(" ");
+    }
+
+    public static String getIndex(){
+    	List<String> weightSet = new ArrayList<String>();	
+    	try {
+			for (String line : Files.readAllLines(Paths.get("benchmark.txt"))) {
+				weightSet.add(line.trim());
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	
+    	// Easiest way to increment the index
+    	List<String> results = new ArrayList<String>();
+    	try {
+			for (String line : Files.readAllLines(Paths.get("logs/outcomes.txt"))) {
+				results.add(line.trim());
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	
+    	// Change index every 10
+    	// Has the added benefit of restarting where it left off
+    	// 		in the event of a restart
+    	int index = (results.size() / 10) % 10;
+		String[] tokens = weightSet.get(index).split(" ");
 		for (int i = 0; i < tokens.length; i++){
 			weights[i] = Integer.valueOf(tokens[i]);
 		}
 		
-
-    	System.out.println("Evolving Player Two Set");
-    	return Integer.toString(index);
+		
+		//TODO remove quick eval
+		
+		int[] totals = new int[10];
+		int[] firstWins = new int[10];
+		int[] secondWins = new int[10];
+		
+		for (int i = 1095; i < 1389; i++){
+			String result = results.get(i);
+			String[] tokens2 = result.split(",");
+			int p1 = Integer.parseInt(tokens2[1].replaceAll("[\\D]", ""));
+			int p2 = Integer.parseInt(tokens2[2].replaceAll("[\\D]", ""));
+			int w = Integer.parseInt(tokens2[4].replaceAll("[\\D]", ""));
+			totals[p1] ++;
+			totals[p2] ++;
+			if (w == p1){
+				firstWins[p1] ++;
+			}
+			else{
+				secondWins[p2] ++;
+			}	
+		}
+		
+		for (int i = 0; i < 10; i++){
+			System.out.println(i + " " + firstWins[i] + " " + secondWins[i] + " " + totals[i]);
+		}
+    	
+		
+		
+		return "Benchmark("+String.valueOf(index)+")";
     }
-
+    
     /** This is the primary method that you need to implement.
      * The ``board_state`` object contains the current state of the game,
      * which your agent can use to make decisions. See the class hus.RandomHusPlayer

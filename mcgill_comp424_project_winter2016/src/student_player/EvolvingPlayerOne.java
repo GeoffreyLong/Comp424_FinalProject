@@ -30,7 +30,7 @@ public class EvolvingPlayerOne extends HusPlayer {
 	private int count = 0;
 	private static int[] weights = new int[13];
 	static Random rand;
-	private static int start = Integer.MAX_VALUE;
+	private static final int start = 749;		
 	
     /** You must modify this constructor to return your student number.
      * This is important, because this is what the code that runs the
@@ -51,9 +51,6 @@ public class EvolvingPlayerOne extends HusPlayer {
     	for (String line : Files.readAllLines(Paths.get("evolve.txt"))) {
         	evolution.add(line.trim());
         }
-    	
-    	// The starting point for the evolution
-    	if (results.size() < start) start = results.size();
     	
     	if (evolution.size() < 10){
     		for (int j = 0; j < 10; j++){
@@ -106,6 +103,9 @@ public class EvolvingPlayerOne extends HusPlayer {
 					if (Math.random() > 0.8){
 						curEvolved[j] = String.valueOf(0);
 					}
+					if (Math.random() > 0.9){
+						curEvolved[j] = String.valueOf(ThreadLocalRandom.current().nextInt(-8, 8 + 1));
+					}
 					newEvolved = curEvolved[j] + " ";
 				}
 				evolution.set(i, newEvolved);
@@ -119,7 +119,7 @@ public class EvolvingPlayerOne extends HusPlayer {
 		}
 
     	System.out.println("Evolving Player One Set");
-    	return Integer.toString(index) + "," + evolution.get(index);
+    	return Integer.toString(index);
     }
 
     /** This is the primary method that you need to implement.
@@ -163,6 +163,12 @@ public class EvolvingPlayerOne extends HusPlayer {
         
         // Shut down the executor
         executor.shutdownNow();
+        
+        // Break out of loops
+        // Before I had a game that lasted 4500 rounds before I cancelled
+        if (board_state.getTurnNumber() >= 200){
+        	return null;
+        }
         
         return move;
     }

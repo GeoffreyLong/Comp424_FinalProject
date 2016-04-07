@@ -4,9 +4,13 @@ import hus.HusBoardState;
 import hus.HusPlayer;
 import hus.HusMove;
 
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -14,6 +18,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import autoplay.Autoplay;
 import student_player.mytools.MyTools;
 
 /** A Hus player submitted by a student. */
@@ -22,13 +27,50 @@ public class StudentPlayer extends HusPlayer {
 	private float avgLeaf = 0;
 	private float avgCount = 0;
 	private int count = 0;
+	private static int[] weights = new int[13];
+	
 	
     /** You must modify this constructor to return your student number.
      * This is important, because this is what the code that runs the
      * competition uses to associate you with your agent.
      * The constructor should do nothing else. */
-    public StudentPlayer() { super("AlphaBetaSimple"); }
+    public StudentPlayer() { 
+    	super(getIndex()); 
+    	
+    }
 
+    public static String getIndex(){
+    	List<String> weightSet = new ArrayList<String>();	
+    	try {
+			for (String line : Files.readAllLines(Paths.get("testWeights.txt"))) {
+				weightSet.add(line.trim());
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	
+    	
+    	// Easiest way to increment the index
+    	List<String> results = new ArrayList<String>();
+    	try {
+			for (String line : Files.readAllLines(Paths.get("logs/outcomes.txt"))) {
+				results.add(line.trim());
+			}
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	
+    	int index = results.size() % 10;
+    	String[] tokens = weightSet.get(index).split(" ");
+		for (int i = 0; i < tokens.length; i++){
+			weights[i] = Integer.valueOf(tokens[i]);
+		}
+    	
+		return "TESTING("+String.valueOf(index)+")";
+    }
+    	
     /** This is the primary method that you need to implement.
      * The ``board_state`` object contains the current state of the game,
      * which your agent can use to make decisions. See the class hus.RandomHusPlayer
@@ -101,7 +143,7 @@ public class StudentPlayer extends HusPlayer {
         // Use executor to handle the timing
         ExecutorService executor = Executors.newSingleThreadExecutor();
         // MiniMax mm = new MiniMax(board_state,mmTreeRoot);
-        AlphaBeta mm = new AlphaBeta(board_state);
+        AlphaBeta mm = new AlphaBeta(board_state, weights);
         Future<HusMove> future = executor.submit(mm);
         HusMove move = null;
         
