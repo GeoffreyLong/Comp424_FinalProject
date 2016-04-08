@@ -45,7 +45,7 @@ public class Autoplay
             Process server = server_pb.start();
 
             ProcessBuilder client1_pb = new ProcessBuilder(
-                    "java", "-cp", "bin", "-Xms520m", "-Xmx520m", "boardgame.Client", "student_player.BenchmarkPlayer");
+                    "java", "-cp", "bin", "-Xms520m", "-Xmx520m", "boardgame.Client", "student_player.StudentPlayer");
 //            		"java", "-cp", "bin", "-Xms520m", "-Xmx520m", "boardgame.Client", "student_player.OptPlayer");
             client1_pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
 
@@ -53,7 +53,7 @@ public class Autoplay
 //                    "java", "-cp", "bin", "-Xms520m", "-Xmx520m", "boardgame.Client", "student_player.OpponentPlayer");
 //                    "java", "-cp", "bin", "-Xms520m", "-Xmx520m", "boardgame.Client", "student_player.EvolvingPlayerTwo");
 //            		"java", "-cp", "bin", "-Xms520m", "-Xmx520m", "boardgame.Client", "student_player.OptPlayer");
-                    "java", "-cp", "bin", "-Xms520m", "-Xmx520m", "boardgame.Client", "student_player.StudentPlayer");
+                    "java", "-cp", "bin", "-Xms520m", "-Xmx520m", "boardgame.Client", "hus.RandomHusPlayer");
             client2_pb.redirectOutput(ProcessBuilder.Redirect.INHERIT);
 
             for (int i=0; i < n_games; i++) {

@@ -25,11 +25,8 @@ import student_player.mytools.MyTools;
 
 /** A Hus player submitted by a student. */
 public class StudentPlayer extends HusPlayer {
-	private Node mmTreeRoot = new Node(null, Float.MIN_VALUE, null, true);
-	private float avgLeaf = 0;
-	private float avgCount = 0;
-	private int count = 0;
 	private static int[] weights = new int[13];
+	private final int TIME_LIMIT = 1800;
 	
 	
     /** You must modify this constructor to return your student number.
@@ -37,84 +34,7 @@ public class StudentPlayer extends HusPlayer {
      * competition uses to associate you with your agent.
      * The constructor should do nothing else. */
     public StudentPlayer() { 
-    	super(getIndex()); 
-    	//super("260403840");
-    }
-
-    public static String getIndex(){
-    	List<String> weightSet = new ArrayList<String>();	
-    	try {
-			for (String line : Files.readAllLines(Paths.get("weightSet.txt"))) {
-				weightSet.add(line.trim());
-			}
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-    	
-    	
-    	// Easiest way to increment the index
-    	List<String> results = new ArrayList<String>();
-    	try {
-			for (String line : Files.readAllLines(Paths.get("logs/outcomes.txt"))) {
-				results.add(line.trim());
-			}
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-    	
-    	int index = 3;
-    	//int index = (results.size() / 10) % weightSet.size();
-    	if (index == 0){
-    		try{
-	    		String newIndividual = "";
-	    		for (int i = 0; i < 13; i ++){
-	    			int weight = 0;
-	    			if (Math.random() > 0.9){
-	    				weight = ThreadLocalRandom.current().nextInt(-8, 8 + 1);
-	    			}
-	    			else if (Math.random() > 0.7){
-	    				// Top individuals are (theoretically) the best ones
-	    				int ind = ThreadLocalRandom.current().nextInt(0, 5);
-	    				String individual = weightSet.get(ind);
-	    				String[] tokens = individual.split(" ");
-	    				weight = Integer.valueOf(tokens[i]);
-	    			}
-	    			else if (Math.random() > 0.5){
-	    				// Select from any individual
-	    				int ind = ThreadLocalRandom.current().nextInt(0, weightSet.size());
-	    				String individual = weightSet.get(ind);
-	    				String[] tokens = individual.split(" ");
-	    				// Change the value a bit
-	    				weight = (Integer.valueOf(tokens[i]) + ThreadLocalRandom.current().nextInt(-2, 2)) % 9;
-	    			}
-	    			else{
-	    				weight = 0;
-	    			}
-	    			
-	    			newIndividual += String.valueOf(weight) + " ";
-	    		}
-	
-	    		weightSet.add(newIndividual);
-	    		try {
-					Files.write(Paths.get("weightSet.txt"), weightSet);
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-    		} catch(Exception e){
-	    		
-	    	}
-    	}
-    	
-    	
-    	String[] tokens = weightSet.get(index).split(" ");
-		for (int i = 0; i < tokens.length; i++){
-			weights[i] = Integer.valueOf(tokens[i]);
-		}
-    	
-		return "TESTING("+String.valueOf(index)+")";
+    	super("260403840");
     }
     	
     /** This is the primary method that you need to implement.
@@ -122,8 +42,39 @@ public class StudentPlayer extends HusPlayer {
      * which your agent can use to make decisions. See the class hus.RandomHusPlayer
      * for another example agent. */
     public HusMove chooseMove(HusBoardState board_state){
-    	//return timed(board_state);
-    	return threaded(board_state);
+		if (board_state.getTurnPlayer() == 0){
+	    	weights[0] = 8;
+			weights[1] = 0;
+			weights[2] = 2;
+			weights[3] = 0;
+			weights[4] = 2;
+			weights[5] = 0;
+			weights[6] = 2;
+			weights[7] = 0;
+			weights[8] = 2;
+			weights[9] = 0;
+			weights[10] = 2;
+			weights[11] = 0;
+			weights[12] = 2;			
+		}
+		else{
+	    	weights[0] = 8;
+			weights[1] = 0;
+			weights[2] = 2;
+			weights[3] = -3;
+			weights[4] = 2;
+			weights[5] = 0;
+			weights[6] = 0;
+			weights[7] = 0;
+			weights[8] = 2;
+			weights[9] = 0;
+			weights[10] = 0;
+			weights[11] = 0;
+			weights[12] = 2;			
+		}
+    	
+    	return timed(board_state);
+    	//return threaded(board_state);
     }
 
     // This is the threaded version
@@ -136,6 +87,11 @@ public class StudentPlayer extends HusPlayer {
         // Pass in the current board state as well as the weighting used
         AlphaBeta mm = new AlphaBeta(board_state, weights, System.currentTimeMillis());
         
+		// If it is threaded, add another 300 ms to the timer
+		// Don't want to time out prematurely
+		// But will want to time out if, say, there is an error
+        mm.timeLimit = TIME_LIMIT + 300;
+        
         // Submit the instance to the executor
         Future<HusMove> future = executor.submit(mm);
 
@@ -146,25 +102,17 @@ public class StudentPlayer extends HusPlayer {
 
         // Spawn a thread to perform the work 
         try {
-        	if (board_state.getTurnNumber() == 0){
-           		mm.timerLimit = 29000;
-        		// Give the system 29000 ms if first turn
-        		move = future.get(29000, TimeUnit.MILLISECONDS);
- 
-        	}
-        	else{
-        		mm.timerLimit = 1900;
-        		// This will allow the system to run for 1900 ms
-            	move = future.get(1900, TimeUnit.MILLISECONDS);
-        	}
+        	// This will allow the system to run for 1900 ms
+        	// Ease off a bit for the trials though
+        	move = future.get(TIME_LIMIT, TimeUnit.MILLISECONDS);
 		} catch (InterruptedException e) {
-			System.out.println("interrupt");
+			//System.out.println("interrupt");
 		} catch (ExecutionException e) {
 			// Print stack trace if there is an error
-			System.out.println("interrupt1");
-			StringWriter writer = new StringWriter();
-			e.printStackTrace( new PrintWriter(writer,true ));
-			System.out.println("exeption stack is :\n"+writer.toString());
+			//System.out.println("interrupt1");
+			//StringWriter writer = new StringWriter();
+			//e.printStackTrace( new PrintWriter(writer,true ));
+			//System.out.println("exeption stack is :\n"+writer.toString());
 		} catch (TimeoutException e) {
 			// On a timeout, the thread will end up here
 			// This will throw an interrupt to the thread
@@ -195,15 +143,7 @@ public class StudentPlayer extends HusPlayer {
 		// Instantiate the Alpha Beta Pruning method
         // Pass in the current board state as well as the weighting used
         AlphaBeta mm = new AlphaBeta(board_state, weights, System.currentTimeMillis());
-
-       	if (board_state.getTurnNumber() == 0){
-    		// Give the system 29000 ms if first turn
-       		mm.timerLimit = 29000;
-    	}
-    	else{
-    		// This will allow the system to run for 1900 ms
-    		mm.timerLimit = 1900;
-    	}
+        mm.timeLimit = TIME_LIMIT;
         
         // Will throw an exception if timeout
         try {

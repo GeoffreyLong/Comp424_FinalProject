@@ -8,7 +8,6 @@ import java.util.concurrent.Callable;
 
 import hus.HusBoardState;
 import hus.HusMove;
-import student_player.Node;
 
 // Technically could just do runnable
 // This will be iterative
@@ -21,8 +20,7 @@ public class AlphaBeta implements Callable<HusMove> {
 	private boolean isInterrupted = false;
 	private int[] weights;
 	private long startTime = Long.MAX_VALUE;
-	public long timerLimit = 1900;
-	public int depth = 0;
+	public int timeLimit = 1800;
 	
 	public AlphaBeta(HusBoardState board_state, int[] weights, long startTime){
 		cloned_board_state = (HusBoardState) board_state.clone();
@@ -34,10 +32,6 @@ public class AlphaBeta implements Callable<HusMove> {
 	
 	@Override
 	public HusMove call() throws Exception {
-		// If it is threaded, add another 300 ms to the timer
-		// Don't want to time out prematurely
-		// But will want to time out if, say, there is an error
-		startTime = startTime + 30000000;
 		return runAB();
 	}
 
@@ -45,7 +39,7 @@ public class AlphaBeta implements Callable<HusMove> {
 		// Start at depth three
 		// Expected to, at minimum, reach depth 4
 		// This should offer a slight speedup
-		depth = 3;
+		int depth = 4;
 		
 
 		// This while statement handles the iterative deepening
@@ -53,9 +47,8 @@ public class AlphaBeta implements Callable<HusMove> {
 		while (true){
 			// If the thread has been interrupted, break the loop
 			if (isInterrupted) break;
-
-			// Increase the depth of the search
-			depth += 1;
+			
+			int systime = (int) System.currentTimeMillis();
 
 			Node mmTreeRoot = new Node(null, null, true);
 			
@@ -64,6 +57,7 @@ public class AlphaBeta implements Callable<HusMove> {
 
 			// Make sure to break before the backpropagation
 			if (isInterrupted) break;
+			
 			// Find the best possible move based on the children
 			// Store  the best move in a class variable
 			float bestValue = Float.MIN_VALUE;
@@ -74,6 +68,21 @@ public class AlphaBeta implements Callable<HusMove> {
 					bestMove = node.move;
 				}
 			}
+			
+			// Simple way of easily increasing the search
+			// Increase the depth of the search
+			int endTime = (int) System.currentTimeMillis() - systime;
+			int timeLeft = (int) System.currentTimeMillis() - (int) startTime;
+			
+			if (endTime == 0){
+				depth += 1;
+			}
+			else{
+				long multiplicity = timeLeft / endTime;
+				if (multiplicity > 3) multiplicity = 3;
+				if (multiplicity < 1) multiplicity = 1;
+				depth += multiplicity;
+			}
 		}
 		return bestMove;
 	}
@@ -81,7 +90,7 @@ public class AlphaBeta implements Callable<HusMove> {
 	// Adapted from pseudocode found on https://en.wikipedia.org/wiki/alpha-beta_pruning
 	private float alphabeta(HusBoardState state, Node parent, int depth, float alpha, float beta, boolean isMax) throws Exception{
 		// Return if the timer runs out
-		if (System.currentTimeMillis() - startTime >= 1900) {
+		if (System.currentTimeMillis() - startTime >= timeLimit) {
 			isInterrupted = true;
 		}
 
@@ -207,7 +216,6 @@ public class AlphaBeta implements Callable<HusMove> {
 	// i.e. have another timed method, if that method times out then
 	// just return the statically generated value
 	public HusMove getBestMove(){
-		System.out.println(depth);
 		return this.bestMove;
 	}
 }

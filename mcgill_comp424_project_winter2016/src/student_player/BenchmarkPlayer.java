@@ -23,6 +23,7 @@ import java.util.concurrent.TimeoutException;
 import autoplay.Autoplay;
 import student_player.mytools.AlphaBeta;
 import student_player.mytools.MyTools;
+import student_player.mytools.Node;
 
 /** A Hus player submitted by a student. */
 public class BenchmarkPlayer extends HusPlayer {
@@ -69,8 +70,8 @@ public class BenchmarkPlayer extends HusPlayer {
     	// Change index every 10
     	// Has the added benefit of restarting where it left off
     	// 		in the event of a restart
-    	//int index = results.size() % weightSet.size();
-    	int index = 3;
+    	int index = results.size() % weightSet.size();
+    	//int index = 3;
     	
 		String[] tokens = weightSet.get(index).split(" ");
 		for (int i = 0; i < tokens.length; i++){
@@ -79,22 +80,22 @@ public class BenchmarkPlayer extends HusPlayer {
 		
 		
 		//TODO remove quick eval
-		/*
-		List<String> weightSet = new ArrayList<String>();	
+		
+		List<String> weighters = new ArrayList<String>();	
     	try {
 			for (String line : Files.readAllLines(Paths.get("weightSet.txt"))) {
-				weightSet.add(line.trim());
+				weighters.add(line.trim());
 			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
-		int[] totals = new int[weightSet.size()];
-		int[] firstWins = new int[weightSet.size()];
-		int[] secondWins = new int[weightSet.size()];
+		int[] totals = new int[weighters.size()];
+		int[] firstWins = new int[weighters.size()];
+		int[] secondWins = new int[weighters.size()];
 		
-		for (int i = 1631; i <= 1770; i++){
+		for (int i = 1831; i <= 1947; i++){
 			String result = results.get(i);
 			String[] tokens2 = result.split(",");
 			int p1 = Integer.parseInt(tokens2[1].replaceAll("[\\D]", ""));
@@ -110,10 +111,10 @@ public class BenchmarkPlayer extends HusPlayer {
 			}	
 		}
 		
-		for (int i = 0; i < weightSet.size(); i++){
+		for (int i = 0; i < weighters.size(); i++){
 			System.out.println(i + " " + firstWins[i] + " " + secondWins[i] + " " + totals[i]);
 		}
-		*/
+		
 		
 		return "Benchmark("+String.valueOf(index)+")";
     }
