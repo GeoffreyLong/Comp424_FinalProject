@@ -20,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import autoplay.Autoplay;
+import student_player.mytools.AlphaBeta;
 import student_player.mytools.MyTools;
 
 /** A Hus player submitted by a student. */
@@ -37,7 +38,7 @@ public class StudentPlayer extends HusPlayer {
      * The constructor should do nothing else. */
     public StudentPlayer() { 
     	super(getIndex()); 
-    	
+    	//super("260403840");
     }
 
     public static String getIndex(){
@@ -121,12 +122,19 @@ public class StudentPlayer extends HusPlayer {
      * which your agent can use to make decisions. See the class hus.RandomHusPlayer
      * for another example agent. */
     public HusMove chooseMove(HusBoardState board_state){
+    	//return timed(board_state);
+    	return threaded(board_state);
+    }
+
+    // This is the threaded version
+    // Not sure if it will play nicely with the system
+	private HusMove threaded(HusBoardState board_state) {
         // Use executor to handle the timing
         ExecutorService executor = Executors.newSingleThreadExecutor();
 
         // Instantiate the Alpha Beta Pruning method
         // Pass in the current board state as well as the weighting used
-        AlphaBetaAvgs mm = new AlphaBetaAvgs(board_state, weights);
+        AlphaBeta mm = new AlphaBeta(board_state, weights, System.currentTimeMillis());
         
         // Submit the instance to the executor
         Future<HusMove> future = executor.submit(mm);
@@ -138,8 +146,17 @@ public class StudentPlayer extends HusPlayer {
 
         // Spawn a thread to perform the work 
         try {
-        	// This will allow the system to run for 1300 ms
-        	move = future.get(1800, TimeUnit.MILLISECONDS);
+        	if (board_state.getTurnNumber() == 0){
+           		mm.timerLimit = 29000;
+        		// Give the system 29000 ms if first turn
+        		move = future.get(29000, TimeUnit.MILLISECONDS);
+ 
+        	}
+        	else{
+        		mm.timerLimit = 1900;
+        		// This will allow the system to run for 1900 ms
+            	move = future.get(1900, TimeUnit.MILLISECONDS);
+        	}
 		} catch (InterruptedException e) {
 			System.out.println("interrupt");
 		} catch (ExecutionException e) {
@@ -153,7 +170,7 @@ public class StudentPlayer extends HusPlayer {
 			// This will throw an interrupt to the thread
 			future.cancel(true);
 		} catch (Exception e){
-			System.out.println("My Exception");
+			
     	}finally {
 			
 		}
@@ -171,5 +188,31 @@ public class StudentPlayer extends HusPlayer {
         
         // Return the chosen move
         return move;
-    }
+	}
+
+	// Timed Version
+	private HusMove timed(HusBoardState board_state) {
+		// Instantiate the Alpha Beta Pruning method
+        // Pass in the current board state as well as the weighting used
+        AlphaBeta mm = new AlphaBeta(board_state, weights, System.currentTimeMillis());
+
+       	if (board_state.getTurnNumber() == 0){
+    		// Give the system 29000 ms if first turn
+       		mm.timerLimit = 29000;
+    	}
+    	else{
+    		// This will allow the system to run for 1900 ms
+    		mm.timerLimit = 1900;
+    	}
+        
+        // Will throw an exception if timeout
+        try {
+			mm.runAB();
+		} catch (Exception e) {
+			
+		}
+        
+        // Return the chosen move
+        return mm.getBestMove();
+	}
 }
