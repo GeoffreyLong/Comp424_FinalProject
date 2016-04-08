@@ -95,44 +95,4 @@ public class MyTools {
     private static float opt_numMoves(HusBoardState state){
     	return state.getLegalMoves().size();
     }
-    
-
-    public static float seedDifference(HusBoardState state, int playerNum, int oppPlayerNum){
-		// state.getLegalMoves().size();
-    	int[][] pits = state.getPits();
-		
-		int[] playerPits = pits[playerNum];
-        int[] oppPits = pits[oppPlayerNum];
-        
-        int value = 0;
-        for (int i = 0; i < playerPits.length; i++){
-        	value += playerPits[i] - oppPits[i];
-        }
-        
-        return value;
-	}
-	
-	public static float simpleCapturablePits(HusBoardState state, int playerNum, int oppPlayerNum){
-		// This is a negative value
-		// It is a rough guesstimate on the number of pits capturable by opp
-		// Simply sees which of the opp's inner pits are filled, and which of ours are
-		// Counts up the number of seeds in these pits
-		
-		
-		// state.getLegalMoves().size();
-		int[][] pits = state.getPits();
-		
-		int[] playerPits = pits[playerNum];
-        int[] oppPits = pits[oppPlayerNum];
-        
-        int badPits = 0;
-        for (int i = 0; i < playerPits.length; i++){
-        	// My capturable pits
-        	if (playerPits[i] != 0 && oppPits[i] != 0 && i > 15) badPits -= playerPits[i];
-        }
-        
-        return badPits;
-	}
-	
-	
 }

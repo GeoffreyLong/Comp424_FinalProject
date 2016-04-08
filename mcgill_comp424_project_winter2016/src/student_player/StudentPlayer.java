@@ -120,35 +120,6 @@ public class StudentPlayer extends HusPlayer {
      * which your agent can use to make decisions. See the class hus.RandomHusPlayer
      * for another example agent. */
     public HusMove chooseMove(HusBoardState board_state){
-    	// TODO is there a game clock?
-    	
-    	////////// PROJECT RULES //////////
-    	// A draw is declared if neither wins after 5000 turns
-    	// 30 seconds for initial move, 2 seconds for subsequent moves
-    	// Code must be less than 10mb
-    	// Can only use 500mb of ram
-    	//		Run JVM with “-Xms520m -Xmx520m” to ensure this
-    	// Can multithread, but only one processor 
-    	//		Must end threads on turn completion
-    	// Allowed to read files, not allowed to write them
-    	// Possible to have infinite moves
-    	//		This is where you pick up and sow seeds indefinitely within a turn
-    	//		Can only have up to 200 of these relays
-    	//		If 3 times of more than 200, automatic game loss
-    	//		Apparently can check this by running move on copy of board state
-    	//			HusBoardState has invalid move checkers
-    	// Cannot use external libraries (must make all my own code)
-    	//		All these: https://docs.oracle.com/javase/7/docs/api/overview-summary.html
-    	// Make sure I document well
-    	
-    	// Instantiate the weights according to turn number
-    	// if (board_state.getTurnPlayer == 0){
-    	// 		int[] weights = {};
-    	// }
-    	// else{
-    	//		int[] weights = {};
-    	// }
-    	
         // Use executor to handle the timing
         ExecutorService executor = Executors.newSingleThreadExecutor();
 
@@ -183,7 +154,6 @@ public class StudentPlayer extends HusPlayer {
 		} finally {
 			
 		}
-        
         
         // Pass the thread another interrupt just in case
         // This sets the isInterrupted flag on the thread

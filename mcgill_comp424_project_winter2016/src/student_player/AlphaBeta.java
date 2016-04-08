@@ -22,16 +22,7 @@ public class AlphaBeta implements Callable<HusMove> {
 	private int playerNum;
 	private int oppPlayerNum;
 	private boolean isInterrupted = false;
-	//public int count = 0;
-	//public int leafCount = 0;
 	private int[] weights;
-	
-	public AlphaBeta(HusBoardState board_state, Node mmTreeRoot){
-		cloned_board_state = (HusBoardState) board_state.clone();
-		this.mmTreeRoot = mmTreeRoot;
-		this.playerNum = board_state.getTurnPlayer();
-		this.oppPlayerNum = (this.playerNum + 1) % 2;
-	}
 	
 	public AlphaBeta(HusBoardState board_state, int[] weights){
 		cloned_board_state = (HusBoardState) board_state.clone();
@@ -43,16 +34,24 @@ public class AlphaBeta implements Callable<HusMove> {
 
 	@Override
 	public HusMove call() throws Exception {
+		// Start at depth three
+		// Expected to, at minimum, reach depth 4
+		// This should offer a slight speedup
 		int depth = 3;
 		
-		// Performs useless calculations when the tree isn't deep
-		// Not a really bad problem though?
+
+		// This while statement handles the iterative deepening
+		// The system will run alpha beta pruning with one extra level each iteration
 		while (true){
+			// If the thread has been interrupted, break the loop
 			if (isInterrupted) break;
 
 			// Increase the depth of the search
 			depth += 1;
 
+			mmTreeRoot = new Node(null, null, true);
+			
+			// Run Alpha Beta pruning
 			alphabeta(cloned_board_state, mmTreeRoot, depth, Float.MIN_VALUE, Float.MAX_VALUE, true);
 
 			// Find the best possible move based on the children
@@ -85,8 +84,9 @@ public class AlphaBeta implements Callable<HusMove> {
 			//		that are based on the board state
 			return MyTools.opt_evaluator(state, playerNum, oppPlayerNum, weights);
 		}
-		
-		List<Node> nodeList = new ArrayList<Node>();
+
+		// Initialize the empty children list
+		List<Node> children = new ArrayList<Node>();
 		
 		// Maximizing player
 		if (isMax){
@@ -94,27 +94,34 @@ public class AlphaBeta implements Callable<HusMove> {
 			float bestValue = alpha;
 			
 			// Iterate through all the moves
+			// Each move will be a child value
 			for (HusMove move : moves){
 				Node node = new Node(parent,move,isMax);
-				
+
+				// Clone the state to avoid mutating the parent's or sibling's state
+				// Relic of the pass by reference nature
 				HusBoardState tempState = (HusBoardState) state.clone();
-				// TODO Add if statement to check for infinite moves
 				tempState.move(move);
 
+				// Perform recursive alpha beta
 				float value = alphabeta(tempState, node, depth-1, alpha, beta, false);
 				
+				// Update the value of bestValue and alpha
 				if (value > bestValue) bestValue = value;
 				if (value > alpha) alpha = value;
 
+				// Set the node's value and add to children list
 				node.value = value;
-				nodeList.add(node);
+				children.add(node);
 
 				// Beta cutoff
 				if (beta <= alpha) break;
-				
 			}
 			
-			parent.children = nodeList;
+			// Add the children list to the parent
+			parent.children = children;
+			
+			// Return the best performing child
 			return bestValue;
 		}
 		// Minimizing player
@@ -125,23 +132,33 @@ public class AlphaBeta implements Callable<HusMove> {
 			// Iterate through all the moves
 			for (HusMove move : moves){
 				Node node = new Node(parent,move,isMax);
-				
+
+				// Clone the state to avoid mutating the parent's or sibling's state
+				// Relic of the pass by reference nature
 				HusBoardState tempState = (HusBoardState) state.clone();
 				tempState.move(move);
 
+				// Recursively compute the value by backpropagation
 				float value = alphabeta(tempState, node, depth-1, alpha, beta, true);
-				
+
+				// update bestValue and beta
 				if (value < bestValue) bestValue = value;
 				if (value < beta) beta = value;
 				
+				// Set the node value
 				node.value = value;
-				nodeList.add(node);
+				
+				// Add the child to the list of children
+				children.add(node);
 
 				// Alpha cutoff
 				if (beta <= alpha) break;				
 			}
 			
-			parent.children = nodeList;
+			// Add the children list to the parent
+			parent.children = children;
+			
+			// Return the best performing child (for minimizing)
 			return bestValue;
 		}
 	}
