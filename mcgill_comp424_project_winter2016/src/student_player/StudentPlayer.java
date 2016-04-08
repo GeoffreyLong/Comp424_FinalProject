@@ -63,7 +63,8 @@ public class StudentPlayer extends HusPlayer {
 			e.printStackTrace();
 		}
     	
-    	int index = (results.size() / 10) % weightSet.size();
+    	int index = 3;
+    	//int index = (results.size() / 10) % weightSet.size();
     	if (index == 0){
     		try{
 	    		String newIndividual = "";
@@ -125,7 +126,7 @@ public class StudentPlayer extends HusPlayer {
 
         // Instantiate the Alpha Beta Pruning method
         // Pass in the current board state as well as the weighting used
-        AlphaBeta mm = new AlphaBeta(board_state, weights);
+        AlphaBetaAvgs mm = new AlphaBetaAvgs(board_state, weights);
         
         // Submit the instance to the executor
         Future<HusMove> future = executor.submit(mm);
@@ -138,7 +139,7 @@ public class StudentPlayer extends HusPlayer {
         // Spawn a thread to perform the work 
         try {
         	// This will allow the system to run for 1300 ms
-        	move = future.get(1300, TimeUnit.MILLISECONDS);
+        	move = future.get(1800, TimeUnit.MILLISECONDS);
 		} catch (InterruptedException e) {
 			System.out.println("interrupt");
 		} catch (ExecutionException e) {
@@ -151,7 +152,9 @@ public class StudentPlayer extends HusPlayer {
 			// On a timeout, the thread will end up here
 			// This will throw an interrupt to the thread
 			future.cancel(true);
-		} finally {
+		} catch (Exception e){
+			System.out.println("My Exception");
+    	}finally {
 			
 		}
         

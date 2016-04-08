@@ -68,8 +68,9 @@ public class BenchmarkPlayer extends HusPlayer {
     	// Change index every 10
     	// Has the added benefit of restarting where it left off
     	// 		in the event of a restart
-    	int index = results.size() % weightSet.size();
-
+    	//int index = results.size() % weightSet.size();
+    	int index = 3;
+    	
 		String[] tokens = weightSet.get(index).split(" ");
 		for (int i = 0; i < tokens.length; i++){
 			weights[i] = Integer.valueOf(tokens[i]);

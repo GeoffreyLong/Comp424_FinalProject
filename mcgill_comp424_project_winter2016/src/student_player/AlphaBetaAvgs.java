@@ -5,6 +5,8 @@
 package student_player;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -14,7 +16,7 @@ import student_player.mytools.MyTools;
 
 // Technically could just do runnable
 // This will be iterative
-public class AlphaBeta implements Callable<HusMove> {
+public class AlphaBetaAvgs implements Callable<HusMove> {
 	// Will want this to be iterative deepening
 	private HusMove bestMove = null;
 	private HusBoardState cloned_board_state;
@@ -24,7 +26,7 @@ public class AlphaBeta implements Callable<HusMove> {
 	private boolean isInterrupted = false;
 	private int[] weights;
 	
-	public AlphaBeta(HusBoardState board_state, int[] weights){
+	public AlphaBetaAvgs(HusBoardState board_state, int[] weights){
 		cloned_board_state = (HusBoardState) board_state.clone();
 		this.mmTreeRoot = new Node(null, null, true);
 		this.playerNum = board_state.getTurnPlayer();
@@ -54,6 +56,9 @@ public class AlphaBeta implements Callable<HusMove> {
 			// Run Alpha Beta pruning
 			alphabeta(cloned_board_state, mmTreeRoot, depth, Float.MIN_VALUE, Float.MAX_VALUE, true);
 
+			if (isInterrupted) break;
+			
+			
 			// Find the best possible move based on the children
 			// Store  the best move in a class variable
 			float bestValue = Float.MIN_VALUE;
@@ -69,16 +74,57 @@ public class AlphaBeta implements Callable<HusMove> {
 	}
 	
 	// Adapted from pseudocode found on https://en.wikipedia.org/wiki/alpha-beta_pruning
-	private float alphabeta(HusBoardState state, Node parent, int depth, float alpha, float beta, boolean isMax) throws Exception{
+	private float alphabeta(final HusBoardState state, Node parent, int depth, float alpha, float beta, boolean isMax){
 		ArrayList<HusMove> moves = state.getLegalMoves();
+		
+		
+		/*
+		Collections.sort(moves, new Comparator<HusMove>() {
+			private int[] playerPits = null;
+			private int[] oppPits = null;
+			
+			public int compare(HusMove x, HusMove y){
+				if (playerPits == null){
+					int[][] pits = state.getPits();
+					playerPits = pits[x.getPlayerID()];
+					oppPits = pits[(x.getPlayerID() + 1) % 2];
+				}
+				
+				int xVal = 0;
+				int xSize = playerPits[x.getPit()];
+				int xEnd = (xSize + x.getPit()) % 32;
+				if (playerPits[xEnd] != 0 && xEnd > 15){
+					xVal = oppPits[xEnd];
+				}
+				
+				int yVal = 0;
+				int ySize = playerPits[y.getPit()];
+				int yEnd = (ySize + y.getPit()) % 32;
+				if (playerPits[yEnd] != 0 && yEnd > 15){
+					yVal = oppPits[yEnd];
+				}
+				
+				return xVal - yVal;
+			}
+		});
+		*/
+		// Simple sort to give preference to those
+		// Slightly more likely to land on an inner pit
+		// But on an earlier inner pit rather than a later one
+		Collections.sort(moves, new Comparator<HusMove>() {
+			public int compare(HusMove x, HusMove y){
+				int xVal = Math.abs(x.getPit() - 15);
+				int yVal = Math.abs(y.getPit() - 15);
+				
+				return xVal - yVal;
+			}
+		});
 
 		// Necessary to set this flag since Thread.interrupted() resets when called
 		if (Thread.interrupted()) isInterrupted = true;
 
-		if (isInterrupted) throw new Exception("Timeout");
-		
 		// If max depth reached or if thread was interrupted
-		if (depth == 0 || moves.size() == 0){
+		if (depth == 0 || moves.size() == 0 || isInterrupted){
 			// If we are at a leaf or the max depth 
 			// (which is basically like a leaf for our purposes)
 			// Estimate the value of the node 
@@ -103,9 +149,7 @@ public class AlphaBeta implements Callable<HusMove> {
 				// Clone the state to avoid mutating the parent's or sibling's state
 				// Relic of the pass by reference nature
 				HusBoardState tempState = (HusBoardState) state.clone();
-				
-				// The move is infinite if false
-				if (!tempState.move(move)) continue;
+				tempState.move(move);
 
 				// Perform recursive alpha beta
 				float value = alphabeta(tempState, node, depth-1, alpha, beta, false);
@@ -140,10 +184,8 @@ public class AlphaBeta implements Callable<HusMove> {
 				// Clone the state to avoid mutating the parent's or sibling's state
 				// Relic of the pass by reference nature
 				HusBoardState tempState = (HusBoardState) state.clone();
+				tempState.move(move);
 
-				// The move is infinite if false
-				if (!tempState.move(move)) continue;
-				
 				// Recursively compute the value by backpropagation
 				float value = alphabeta(tempState, node, depth-1, alpha, beta, true);
 
